@@ -24,7 +24,7 @@ var trainState = {
     this.keys = game.input.keyboard;
     this.keys.addCallbacks(this,function(e){
       if(e.keyCode == 32 && !this.timer.running){
-        requestByStage(Math.floor(this.stage));
+        this.requestByStage(Math.floor(this.stage));
       }
     });
   },
@@ -36,7 +36,7 @@ var trainState = {
           this.trainingData.idle.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(1);
+          this.setStage(1);
         });
         this.text.setText("Listening");
         break;
@@ -46,7 +46,7 @@ var trainState = {
           this.trainingData.up = label.reduce(function(prev, cur){
             return prev.concat(cur);
           });
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
@@ -56,7 +56,7 @@ var trainState = {
           this.trainingData.down.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
@@ -66,7 +66,7 @@ var trainState = {
           this.trainingData.left.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
@@ -76,14 +76,14 @@ var trainState = {
           this.trainingData.right.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
     }
   },
   updateCounter: function(){
-    this.text.setTest(this.text + ".");
+    this.text.setText(this.text + ".");
   },
   setStage: function(stage){
     this.stage = stage;
@@ -95,12 +95,12 @@ var trainState = {
       case 6: case 9:
         this.timer.stop();
         this.text.setText("and again..");
-        setTimeout(function(){requestByStage(this.stage)}, 1000);
+        setTimeout(function(){this.requestByStage(this.stage)}, 1000);
         break;
       case 2: case 4: case 7: case 10:
         this.timer.stop();
         this.text.setText("and once more.");
-        setTimeout(function(){requestByStage(this.stage)}, 1000);
+        setTimeout(function(){this.requestByStage(this.stage)}, 1000);
         break;
       case 3:
         this.timer.stop();
