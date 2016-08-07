@@ -74,38 +74,8 @@ app.get('/token', (request, response) => {
 });
 
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
 
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.send(err);
-  });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.send(err);
-});
-
-/*
-Generate an Access Token for a sync application user - it generates a random
-username for the client requesting a token, and takes a device ID as a query
-parameter.
-*/
-
-trainMode = true
+trainMode = false
 modeName = null
 
 app.post('/startTrain/:name', function(req, res){
@@ -123,7 +93,7 @@ app.post('/stopTrain', function(req, res){
   };
   trainData = null;
   fileName = modeName + "-" + Date.now() + ".json"
-  fs.writeFile(fileName, JSON.stringify(json), function(err) {
+  fs.writeFile("./data/" + fileName, JSON.stringify(json), function(err) {
     if(err) {
         return console.log(err);
     }
@@ -139,7 +109,7 @@ trainData = []
 udpPort.on("message", function (oscData) {
   if (oscData.address == "/muse/eeg") {
     if (trainMode){
-      trainData.append({
+      trainData.push({
         channel1: oscData.args[0],
         channel2: oscData.args[1],
         channel3: oscData.args[2],
@@ -149,6 +119,40 @@ udpPort.on("message", function (oscData) {
   }
 });
 
+
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// error handlers
+
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.send(err);
+    next();
+  });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.send(err);
+  next();
+});
+
+/*
+Generate an Access Token for a sync application user - it generates a random
+username for the client requesting a token, and takes a device ID as a query
+parameter.
+*/
 
 module.exports = {
   app: app,
