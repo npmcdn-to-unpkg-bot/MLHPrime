@@ -27,7 +27,6 @@
     	console.log(response);
 
     	syncClient.document('gameData').then(function(doc) {
-    		debugger
     		syncDoc = doc;
 
     		var gameData = syncDoc.get();
@@ -56,7 +55,6 @@
 
     	});
 
-    	debugger
 
 
 	}).catch(function(err){
