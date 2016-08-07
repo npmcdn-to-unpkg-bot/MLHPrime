@@ -92,7 +92,6 @@ var playState = {
           dX = Math.floor(Math.random()*x);
           dY = n*(y-1);
           this.door = game.add.sprite((dX*2+1)*32, ((dY+n)*2)*32, 'door');
-          console.log("h", dX, dY);
           horiz[dX][dY] = true;
           break;
         case 1:
@@ -101,22 +100,21 @@ var playState = {
           dY = Math.floor(Math.random()*y);
           this.door = game.add.sprite(((dX+n)*2)*32, (dY*2+1)*32, 'door');
           verti[dX][dY] = true;
-          console.log("v", dX, dY);
           break;
       }
-      this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti};
-    	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti});
+      this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti, dX: dX, dY:dY};
+    	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti,  dX: dX, dY:dY});
       return;
     },
 
     displayMaze: function(m) {
 	  this.walls = game.add.group();
-      this.walls.enableBody = true;
+    this.walls.enableBody = true;
 
     	for (var j= 0; j<m.x*2+1; j++) {
     		if (0 == j%2){
     			for (var k=0; k<m.y*2+1; k++){
-    				if (0 == k%2 && !m.verti[j][k] && !m.horix[j][k]){
+    				if (0 == k%2 && (j != m.dX || k != m.dY)){
     					var innerWall = this.walls.create(j*32, k*32, 'wall');
               innerWall.body.immovable = true;
             }else{
