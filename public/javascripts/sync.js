@@ -37,7 +37,7 @@
 	    			gameData.players = [player];
 	    		} else {
 	    			if (gameData.players.length < 2) {
-	    				gameData.players.push()
+	    				gameData.players.push(player);
 	    			}
 	    		}
 	    		return gameData;
