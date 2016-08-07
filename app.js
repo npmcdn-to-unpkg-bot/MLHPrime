@@ -101,10 +101,32 @@ app.post('/stopTrain', function(req, res){
   modeName = null;
 });
 
+app.post('/predict', function(req, res){
+  eegData = req.body.data; // This should be a JSON in the form of [float, float, float, float]
+  var options = {
+    args: [JSON.stringify(eegData)]
+  }
+  pyshell.run('./ml/predict.py', options, function(err, results){
+    if (err){
+      console.log(err);
+      res.status(500).json({});
+    } else{
+      console.log(results);
+      res.json(results);
+    }
+  });
+})
+
 app.post('/trainANN', function(req, res){
-  pyshell.run('./data/neural_network.py', function(err) {
-    if (err) throw err;
-    else console.log('Completed ANN Training!');
+  pyshell.run('./ml/train.py', function(err, results) {
+    if (err){
+      console.log(err);
+      res.status(500).json({});
+    }
+    else{
+      console.log(results);
+      res.json(results);
+    }
   });
 });
 

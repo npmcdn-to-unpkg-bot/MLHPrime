@@ -1,8 +1,8 @@
 import numpy as np
 import json
 
-PARAMS_PATH = "./data/params.json"
-TRAINING_DATA_PATH = "./data/training.json"
+PARAMS_PATH = "./ml/data/params.json"
+TRAINING_DATA_PATH = "./ml/data/training.json"
 
 RELAXED = "relaxed"
 CONCENTRATED = "concentrated"
@@ -13,6 +13,8 @@ strToVecOutMap = {
     CONCENTRATED: [0, 1, 0],
     SCARED: [1, 0, 0],
 }
+
+STATES = [RELAXED, CONCENTRATED, SCARED]
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
@@ -183,8 +185,8 @@ class NeuralNetwork:
         hashMap = {}
         layers = []
         for layer in self._layers:
-            layers.append(layer._theta.tolist)
-        hashMap["data"] = layers
+            layers.append(layer._theta.tolist())
+        hashMap["thetas"] = layers
         return hashMap
 
     @staticmethod
@@ -193,7 +195,7 @@ class NeuralNetwork:
         layers = []
         for theta in thetas:
             layer = Layer(len(theta[0]) - 1, len(theta))
-            layer._theta = theta
+            layer._theta = np.array(theta)
             layers.append(layer)
         ann = NeuralNetwork(layers)
         return ann
@@ -239,7 +241,7 @@ def createTrainAndSaveNetwork():
     layers.append(Layer(4, 12))
     layers.append(Layer(12, 3))
     ann = NeuralNetwork(layers)
-    with open(TRAINING_DATA_PATH) as trainingData:
+    with open(TRAINING_DATA_PATH) as file:
         """
         FORMAT: {
             output: [{
@@ -250,12 +252,14 @@ def createTrainAndSaveNetwork():
             }]
         }
         """
-        data = json.loads(trainingData)["data"]
+        data = json.loads(file.read())
         inp = []
         out = []
-        for key, entry in data.items():
-            inp.append([entry["channel1"], entry["channel2"], entry["channel3"], entry["channel4"]])
-            out.append(strToVecOutMap(key))
+        for key, inList in data.items():
+            for entry in inList:
+                inp.append([entry["channel1"], entry["channel2"], entry["channel3"], \
+                        entry["channel4"]])
+                out.append(strToVecOutMap[key])
         X = np.array(inp)
         y = np.array(out)
         ann.train(X, y)
@@ -265,13 +269,21 @@ def createTrainAndSaveNetwork():
         f.seek(0)
         f.write(string)
         f.truncate()
+    print("Successfully printed and saved params to: " + PARAMS_PATH)
 
 def predictState(X):
-    with open(PARAMS_PATH) as paramsData:
-        hashMap = json.loads(paramsData)
+    with open(PARAMS_PATH) as paramsFile:
+        hashMap = json.loads(paramsFile.read())
         ann = NeuralNetwork.fromSerialized(hashMap)
-        y = ann.predict(np.array([X]))
-        print(y)
+        y = ann.predict(np.array([X])).tolist()[0]
+        # One vs. All
+        maxIdx = -1
+        maxVal = -1 # Min val of sigmoid
+        for i in range(len(STATES)):
+            if y[i] > maxVal:
+                maxIdx = i
+                maxVal = y[i]
+        print(STATES[i])
 
 def xorTest():
     layers = []
@@ -285,6 +297,3 @@ def xorTest():
     ann.train(X, y, checkGrad=False)
     print("AFTER Cost: ", ann.calculateCost(X, y))
     print("PREDICT:: ", ann.predict(X))
-
-if __name__ == "__main__":
-    print("HELLO WORLD!")
