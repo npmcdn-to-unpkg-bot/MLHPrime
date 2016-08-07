@@ -1,0 +1,4 @@
+var puzzleState = {
+	preload: function() {
+	}
+};

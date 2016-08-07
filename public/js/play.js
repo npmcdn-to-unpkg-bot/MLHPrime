@@ -4,6 +4,9 @@ var playState = {
     player: null,
     walls: null,
     puzzles: null,
+    scare: null,
+    time: null,
+    scarePic: null,
 
 	preload: function() {
             game.load.spritesheet('player', 'assets/player.png', 14, 21);
@@ -11,6 +14,7 @@ var playState = {
             game.load.image('tileset', 'assets/background.png')
             game.load.image('background', 'assets/background.png');
             game.load.image('wall', 'assets/wall.png');
+			game.load.image('scare', 'assets/jumpscare.png');
     },
 
     create: function() {
@@ -33,6 +37,12 @@ var playState = {
 
             cursors = game.input.keyboard.createCursorKeys();
             game.camera.follow(player);
+
+            scare = false;
+            scarePic = game.add.sprite(0, 0, 'scare');
+			scarePic.scale.set(2, 2);
+            scarePic.kill();
+            time = 0;
     },
 
     createMaze: function(x,y) {
@@ -102,7 +112,6 @@ var playState = {
     },
 
     update: function() {
-
         game.physics.arcade.collide(player, walls);
 
         player.body.velocity.y = 0;
@@ -110,6 +119,7 @@ var playState = {
 
         if(cursors.up.isDown)
         {
+        	this.activateScare();
             player.body.velocity.y = -150;
             if(player.dirX == 0) player.animations.play('up');
             player.dirY = -1;
@@ -156,6 +166,22 @@ var playState = {
             }
         }
 
+    	if(scare) {
+    		time++;
+    		if(time > 50) {
+    			time = 0;
+    			scare = false;
+    			scarePic.kill();
+    		}
+    	}
+    },
 
-    }
+    activateScare: function() {
+    	scare = true;
+    	scarePic.reset(0, 0);
+    },
+
+    activatePuzzle: function() {
+    	game.state.start('puzzle');
+    },
 };
