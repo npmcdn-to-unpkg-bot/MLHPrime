@@ -101,6 +101,18 @@ app.post('/predict', function(req, res){
   });
 })
 
+/*
+    FORMAT: {
+        output: [
+            [
+                Number,
+                Number,
+                Number,
+                Number,
+            ]
+        ]
+    }
+*/
 app.post('/trainANN', function(req, res){
   samples = req.body.samples; // This should be a JSON in the form of [float, float, float, float]
   var options = {
@@ -121,7 +133,7 @@ app.post('/trainANN', function(req, res){
 var stopTrain = function(){
   trainMode = false;
   json = {
-    modeName: modeName,
+    label: modeName,
     data: trainData,
   };
   modeName= null;
@@ -133,12 +145,12 @@ var stopTrain = function(){
 udpPort.on("message", function (oscData) {
   if (oscData.address == "/muse/eeg") {
     if (trainMode){
-      trainData.push({
-        channel1: oscData.args[0],
-        channel2: oscData.args[1],
-        channel3: oscData.args[2],
-        channel4: oscData.args[3],
-      });
+      trainData.push([
+        oscData.args[0],
+        oscData.args[1],
+        oscData.args[2],
+        oscData.args[3],
+      ]);
       if (trainData.length == SAMPLE_SIZE){
         stopTrain()
       }
