@@ -271,7 +271,7 @@ def createTrainAndSerializeNetwork(data):
     inp = []
     out = []
     for key, samples in data.items():
-        assert len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE)]
+        assert(len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE))
         vec = unrollSamples(samples)
         inp.append(vec)
         out.append(strToVecOutMap[key])
@@ -282,8 +282,7 @@ def createTrainAndSerializeNetwork(data):
     print(serialized)
 
 def predictState(serialized, samples):
-    assert len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE)
-    hashMap = json.loads(serialized)
+    assert(len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE))
     ann = NeuralNetwork.fromSerialized(hashMap)
     X = unrollSamples(samples)
     y = ann.predict(np.array([X])).tolist()[0]

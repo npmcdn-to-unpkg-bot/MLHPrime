@@ -85,7 +85,7 @@ app.post('/startTrain/:name', function(req, res){
 });
 
 app.post('/predict', function(req, res){
-  eegData = req.body.data; // This should be a JSON in the form of [float, float, float, float]
+  eegData = req.body.data; // STRING IN THE FORM OF [[float, float, float, float] * 200]> <SERIALIZED ANN RECEIVED FROM TRAIN
   serializedANN = req.body.serializedANN; // This is what was received from train
   var options = {
     args: [JSON.stringify(eegData), JSON.stringify(serializedANN)]
