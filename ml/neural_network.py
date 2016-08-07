@@ -282,7 +282,7 @@ def createTrainAndSerializeNetwork(data):
     print(serialized)
 
 def predictState(serialized, samples):
-    ann = NeuralNetwork.fromSerialized(hashMap)
+    ann = NeuralNetwork.fromSerialized(serialized)
     X = unrollSamples(samples)
     y = ann.predict(np.array([X])).tolist()[0]
     # One vs. All
