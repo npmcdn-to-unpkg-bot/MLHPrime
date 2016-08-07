@@ -30,10 +30,11 @@
 
     	syncClient.document('mazeData').then(function(doc) {
     		syncMazeDoc = doc;
-    		
+
     		if(!syncMazeDoc.value) {
 	    		syncMazeDoc.set(playState.createMaze(12, 12));
 	    	} else {
+	    		console.log();
 	    		playState.mazeMatrix = syncMazeDoc.value;
 	    	}
 

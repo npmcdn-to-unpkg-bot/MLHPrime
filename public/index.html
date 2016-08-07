@@ -21,13 +21,13 @@
     <script>
         window.onbeforeunload = closingCode;
         function closingCode(){
-            if (index) {
-                console.log("deleting player with index:", index);
+            if (userId) {
                 syncDoc.mutate(function (remoteValue) {
-                    remoteValue.players.splice(index, 1);
+                   delete remoteValue.playersMap[userId];
+                   console.log("deleted userId", userId);
                     return remoteValue;
                 }).then(function() {
-                    console.log(syncDoc.value.players);
+                    console.log(syncDoc.value.playersMap);
                 }).catch(function(err) {
                     console.log(err);
                 });
