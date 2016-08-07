@@ -176,6 +176,17 @@ var playState = {
     	}
     },
 
+    getPlayerData: function() {
+    	return {
+    		x: player.x,
+    		y: player.y,
+    		dirX: player.dirX,
+    		dirY: player.dirY,
+    		dx: player.body.velocity.x,
+    		dy: player.body.velocity.y
+    	};
+    },
+
     activateScare: function() {
     	this.scare = true;
     	this.scarePic.reset(0, 0);
