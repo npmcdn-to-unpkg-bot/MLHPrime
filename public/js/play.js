@@ -4,10 +4,12 @@ var playState = {
     player: null,
     walls: null,
     puzzles: null,
+    scareTraps: null,
     scare: null,
     time: null,
     scarePic: null,
     scream: null,
+    mazeMatrix: null,
 
 	preload: function() {
       game.load.spritesheet('player', 'assets/player.png', 14, 21);
@@ -17,6 +19,7 @@ var playState = {
       game.load.image('wall', 'assets/wall.png');
 			game.load.image('scare', 'assets/jumpscare.png');
       game.load.image('door', 'assets/doors.png');
+      game.load.image('trap', 'assets/trap.png');
 
       game.load.audio('scream', 'assets/scream.m4a');
     },
@@ -33,6 +36,7 @@ var playState = {
       this.player.anchor.setTo(0.5, 0.5);
       this.player.scale.set(1.3, 1.3);
       this.player.body.collideWorldBounds=true;
+      this.spawnScareTraps();
 
       this.player.animations.add('right', [0, 1, 2, 3], 12, true);
       this.player.animations.add('left', [4, 5, 6, 7], 12, true);
@@ -100,6 +104,7 @@ var playState = {
           console.log("v", dX, dY);
           break;
       }
+      this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti};
     	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti});
       return;
     },
@@ -138,12 +143,20 @@ var playState = {
     update: function() {
         game.physics.arcade.collide(this.player, this.walls);
 
+        var that = this;
+        this.scareTraps.forEach(function(trap, i){
+        	if(Phaser.Rectangle.intersects(that.player.getBounds(), trap.getBounds())) {
+        		that.activateScare();
+        		trap.destroy();
+        		that.scareTraps.splice(i, 1);
+        	}
+        }) ;
+
         this.player.body.velocity.y = 0;
         this.player.body.velocity.x = 0;
 
         if(this.cursors.up.isDown)
         {
-        	//this.activateScare();
             this.player.body.velocity.y = -150;
             if(this.player.dirX == 0) this.player.animations.play('up');
             this.player.dirY = -1;
@@ -224,4 +237,22 @@ var playState = {
     activatePuzzle: function() {
     	game.state.start('puzzle');
     },
+
+    spawnScareTraps: function() {
+    	this.scareTraps = [];
+    	var trapCoords = [];
+    	for(var i = 0; i < 3; i++) {
+	    	var x = Math.floor(Math.random() * 12);
+	    	var y = Math.floor(Math.random() * 12);
+	    	while(this.mazeMatrix.horiz[x][y] || this.mazeMatrix.verti[x][y] || trapCoords.filter(function(trap){
+	    		return trap.x = x && trap.y == y;
+	    	}).length > 0) {
+	    		x = Math.floor(Math.random() * 12);
+	    		y = Math.floor(Math.random() * 12);
+	    	}
+	    	var trap = game.add.sprite(x * game.world.width/12, y * game.world.height/12, 'trap');
+	    	this.scareTraps.push(trap);
+	    	trapCoords.push({x: x, y : y});
+	    }
+    }
 };

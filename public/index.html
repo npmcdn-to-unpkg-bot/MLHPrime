@@ -14,10 +14,28 @@
     <script src="https://npmcdn.com/axios/dist/axios.min.js"></script>
 
     <script src="phaser.js"></script>
-    <script src="js/play.js"></script>
     <script src="js/puzzle.js"></script>
+    <script src="js/play.js"></script>
     <script src="js/game.js"></script>
     <script src="javascripts/sync.js"></script>
+    <script>
+        window.onbeforeunload = closingCode;
+        function closingCode(){
+            if (index) {
+                console.log("deleting player with index:", index);
+                syncDoc.mutate(function (remoteValue) {
+                    remoteValue.players.splice(index, 1);
+                    return remoteValue;
+                }).then(function() {
+                    console.log(syncDoc.value.players);
+                }).catch(function(err) {
+                    console.log(err);
+                });
+            }
+           return null;
+        }
+
+    </script>
 
     </body>
 </html>
