@@ -16,9 +16,9 @@ var playState = {
     create: function() {
             game.physics.startSystem(Phaser.Physics.ARCADE);
 
-            game.add.tileSprite(0, 0, 1000, 1000, 'background');
-            game.world.setBounds(0, 0, 1000, 1000);
-            this.createMaze(20, 20);
+            game.add.tileSprite(0, 0, 800, 800, 'background');
+            game.world.setBounds(0, 0, 800, 800);
+            this.createMaze(12, 12);
 
             player = game.add.sprite(32, 32, 'player');
             game.physics.arcade.enable(player);
@@ -74,24 +74,24 @@ var playState = {
 	  walls = game.add.group();
       walls.enableBody = true;
 
-    	for (var j= 0; j<m.x*3+1; j++) {
-    		if (0 == j%3){
-    			for (var k=0; k<m.y*3+1; k++){
-    				if (0 == k%3){
-    					var innerWall = walls.create(j*16, k*16, 'wall');
+    	for (var j= 0; j<m.x*2+1; j++) {
+    		if (0 == j%2){
+    			for (var k=0; k<m.y*2+1; k++){
+    				if (0 == k%2){
+    					var innerWall = walls.create(j*32, k*32, 'wall');
               innerWall.body.immovable = true;
             }else{
-    					if (!(j>0 && m.verti[Math.floor(j/3-1)][Math.floor(k/3)])){
-    						var hWall = walls.create(j*16, k*16, 'wall');
+    					if (!(j>0 && m.verti[Math.floor(j/2-1)][Math.floor(k/2)])){
+    						var hWall = walls.create(j*32, k*32, 'wall');
                 hWall.body.immovable = true;
               }
             }
           }
     		}else{
-    			for (var k=0; k<m.y*3+1; k++){
-    				if (0 == k%3){
-    					if (!(k>0 && m.horiz[Math.floor((j-1)/3)][Math.floor(k/3-1)])){
-                var vWall = walls.create(j*16, k*16, 'wall');
+    			for (var k=0; k<m.y*2+1; k++){
+    				if (0 == k%2){
+    					if (!(k>0 && m.horiz[Math.floor((j-1)/2)][Math.floor(k/2-1)])){
+                var vWall = walls.create(j*32, k*32, 'wall');
                 vWall.body.immovable = true;
               }
             }
@@ -158,4 +158,4 @@ var playState = {
 
 
     }
-};	
+};
