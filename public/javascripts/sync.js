@@ -9,7 +9,7 @@
 	  //synchronisation primitive, for this demo
 	  var syncDoc;
 
-	   var userId;
+   	  var userId = Date.now();
 
 	  var syncMazeDoc;
 
@@ -42,8 +42,9 @@
 	    		console.log(syncMazeDoc.value);
 	    		playState.mazeMatrix = syncMazeDoc.value;
 	    	}
+	    	console.log("draw walls");
     		playState.displayMaze(playState.mazeMatrix);
-      		playState.spawnScareTraps();
+      		//playState.spawnScareTraps();
 
     		syncMazeDoc.on("updated", function (mazeData) {
     			console.log(mazeData);
@@ -54,9 +55,9 @@
 
     	syncClient.document('gameData').then(function(doc) {
     		syncDoc = doc;
-    		userId = Date.now();
 
     		syncDoc.mutate(function (remoteValue) {
+    			remoteValue.playersMap = null;
 	    		if (!remoteValue.playersMap){
 	    			remoteValue.playersMap = new Object(); 
 	    		} 
@@ -64,13 +65,13 @@
 		    		return remoteValue;
     		}).then(function() {
     			console.log(syncDoc.value.playersMap);
+    			playState.renderOtherPlayers(syncDoc.value.playersMap, userId);
     		}).catch(function(err) {
     			console.log(err);
     		});
 
 
     		syncDoc.on("updated", function (gameData) {
-    			console.log(gameData);
     			playState.renderOtherPlayers(gameData.playersMap, userId);
     		});
 
@@ -82,17 +83,31 @@
 		console.log(err);
 	});
 
-	   playerEl = document.getElementById("player");
-	   playerEl.addEventListener("playerUpdate", function(e){
+   playerEl = document.getElementById("player");
+   playerEl.addEventListener("playerUpdate", function(e){
+   	if(syncDoc){
 	   syncDoc.mutate(function (remoteValue) {
-	   		console.log(e.detail);
-                    remoteValue.playersMap[userId] = e.detail;
-                     return remoteValue;
-                 }).then(function() {
-                    console.log(syncDoc.value.playersMap);
-                 }).catch(function(err) {
-                     console.log(err);
-                 });
-	   });
+	                remoteValue.playersMap[userId] = e.detail;
+	                 return remoteValue;
+	             }).then(function() {
+	                //console.log(syncDoc.value.playersMap);
+	             }).catch(function(err) {
+	                 console.log(err);
+	             });
+	  }
+   });
 
 })();
+
+function closingCode(){
+    if (userId) {
+        syncDoc.mutate(function (remoteValue) {
+           delete remoteValue.playersMap[userId];
+            return remoteValue;
+        }).then(function() {
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+   return null;
+}

@@ -12,14 +12,16 @@ var playState = {
     scream: null,
     mazeMatrix: null,
     delta: null,
+    command: null,
 
 	preload: function() {
       game.load.spritesheet('player', 'assets/player.png', 14, 21);
 
       game.load.image('tileset', 'assets/background.png')
       game.load.image('background', 'assets/background.png');
+      console.log("load wall");
       game.load.image('wall', 'assets/wall.png');
-			game.load.image('scare', 'assets/jumpscare.png');
+	  game.load.image('scare', 'assets/jumpscare.png');
       game.load.image('door', 'assets/doors.png');
       game.load.image('trap', 'assets/trap.png');
 
@@ -29,8 +31,8 @@ var playState = {
     create: function() {
       game.physics.startSystem(Phaser.Physics.ARCADE);
 
-      game.add.tileSprite(0, 0, 800, 800, 'background');
-      game.world.setBounds(0, 0, 800, 800);
+      game.add.tileSprite(0, 0, 1000, 1000, 'background');
+      game.world.setBounds(0, 0, 1000, 1000);
 
       console.log("create player");
       this.player = game.add.sprite(47, 47, 'player');
@@ -38,6 +40,8 @@ var playState = {
       this.player.anchor.setTo(0.5, 0.5);
       this.player.scale.set(1.3, 1.3);
       this.player.body.collideWorldBounds=true;
+      this.player.dirX = 1;
+      this.player.dirY = 0;
 
       this.player.animations.add('right', [0, 1, 2, 3], 12, true);
       this.player.animations.add('left', [4, 5, 6, 7], 12, true);
@@ -56,6 +60,9 @@ var playState = {
   		this.scream = game.add.audio('scream', 5);
       this.time = 0;
       this.delta = 0;
+      this.command = 'idle';
+
+      loadScript("javascripts/sync.js")
     },
 
     createMaze: function(x,y) {
@@ -89,6 +96,8 @@ var playState = {
     		} else
     			here = path.pop();
     	}
+    	
+    	/*
       var dX, dY, n;
       switch(Math.floor(Math.random()*2)){
         case 0:
@@ -105,15 +114,15 @@ var playState = {
           this.door = game.add.sprite(((dX+n)*2)*32, (dY*2+1)*32, 'door');
           verti[dX][dY] = true;
           break;
-      }
-      this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti, dX: dX, dY:dY};
+      }*/
+      this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti, dX: 12, dY:12};
     	
       return this.mazeMatrix;
     },
 
     displayMaze: function(m) {
 	  this.walls = game.add.group();
-    this.walls.enableBody = true;
+      this.walls.enableBody = true;
 
     	for (var j= 0; j<m.x*2+1; j++) {
     		if (0 == j%2){
@@ -139,6 +148,8 @@ var playState = {
           }
         }
     	}
+
+      this.door = game.add.sprite(m.dX*game.world.width/13, m.dY*game.world.height/13, 'door');
     	return;
     },
 
@@ -148,6 +159,7 @@ var playState = {
 		   		var temp = players[key];
 		   		if(!(key in this.otherPlayers)) {
 		   			var newOtherPlayer = game.add.sprite(temp.x, temp.y, 'player');
+		   			newOtherPlayer.scale.set(1.3, 1.3);
 		   			newOtherPlayer.dirX = temp.dirX;
 		   			newOtherPlayer.dirY = temp.dirY;
 		   			this.otherPlayers[key] = newOtherPlayer;
@@ -185,6 +197,30 @@ var playState = {
         this.player.body.velocity.y = 0;
         this.player.body.velocity.x = 0;
 
+        if(this.command == 'up') 
+        {
+        	if(this.player.dirX == 1 && this.player.dirY == 0) {
+        		this.player.body.velocity.x = 100;
+        		this.player.animations.play("right");
+        	}
+        	else if(this.player.dirX == 0 && this.player.dirY == -1) {
+        		this.player.body.velocity.y = 100;
+        		this.player.animations.play("down");
+        	}
+        	else if(this.player.dirX == -1 && this.player.dirY == 0) {
+        		this.player.body.velocity.x = -100;
+        		this.player.animations.play("left");
+        	}
+        	else {
+        		this.player.body.velocity.y = -100;
+        		this.player.animations.play("up");
+        	}
+        }
+        else 
+        {
+        	this.player.animations.stop();
+        }
+        /*
         if(this.cursors.up.isDown)
         {
             this.player.body.velocity.y = -150;
@@ -203,38 +239,63 @@ var playState = {
                 this.player.dirX = 0;
             }
         }
+        */
 
-        if(this.cursors.right.isDown)
-        {
-            this.player.body.velocity.x = 150;
-            this.player.animations.play('right');
-            this.player.dirX = 1;
-            if(!this.cursors.up.isDown && !this.cursors.down.isDown) {
-                this.player.dirY = 0;
-            }
-        }
-        else if(this.cursors.left.isDown)
-        {
-            this.player.body.velocity.x = -150;
-            this.player.animations.play('left');
-            this.player.dirX = -1;
-            if(!this.cursors.up.isDown && !this.cursors.down.isDown) {
-                this.player.dirY = 0;
-            }
-        }
-        else if(!this.cursors.up.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown && !this.cursors.right.isDown)
-        {
-            this.player.animations.stop();
-            if(this.player.dirX == 1) this.player.frame = 2;
-            else if(this.player.dirX == -1) this.player.frame = 5;
-            else if(this.player.dirX == 0) {
-                if(this.player.dirY == -1) this.player.frame = 10;
-                else if(this.player.dirY == 1) this.player.frame = 13;
-            }
-        }
+        if(this.delta % 20 == 0) {
+	        if(this.command == 'right')
+	        {
+	        	if(this.player.dirX == 0 && this.player.dirY == 1) {
+	        		this.player.dirX = 1;
+	        		this.player.dirY = 0;
+	        		this.player.frame = 2;
+	        	} else if(this.player.dirX == 1 && this.player.dirY == 0) {
+	        		this.player.dirX = 0;
+	        		this.player.dirY = -1;
+	        		this.player.frame = 13;
+	        	} else if(this.player.dirX == 0 && this.player.dirY == -1) {
+	        		this.player.dirX = -1;
+	        		this.player.dirY = 0;
+	        		this.player.frame = 5;
+	        	} else {
+	        		this.player.dirX = 0;
+	        		this.player.dirY = 1;
+	        		this.player.frame = 10;
+	        	}
+	        }
+	        else if(this.command == 'left')
+	        {
+	        	if(this.player.dirX == 0 && this.player.dirY == 1) {
+	        		this.player.dirX = -1;
+	        		this.player.dirY = 0;
+	        		this.player.frame = 5;
+	        	} else if(this.player.dirX == -1 && this.player.dirY == 0) {
+	        		this.player.dirX = 0;
+	        		this.player.dirY = -1;
+	        		this.player.frame = 13;
+	        	} else if(this.player.dirX == 0 && this.player.dirY == -1) {
+	        		this.player.dirX = 1;
+	        		this.player.dirY = 0;
+	        		this.player.frame = 2;
+	        	} else {
+	        		this.player.dirX = 0;
+	        		this.player.dirY = 1;
+	        		this.player.frame = 10;
+	        	}
+	        }
+	        /*
+	        else if(!this.cursors.up.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown && !this.cursors.right.isDown)
+	        {
+	            this.player.animations.stop();
+	            if(this.player.dirX == 1) this.player.frame = 2;
+	            else if(this.player.dirX == -1) this.player.frame = 5;
+	            else if(this.player.dirX == 0) {
+	                if(this.player.dirY == -1) this.player.frame = 10;
+	                else if(this.player.dirY == 1) this.player.frame = 13;
+	            }
+	        }*/
+	    }
 
-        if(this.delta > 15) {
-        	this.delta = 0;
+        if(this.delta % 15 == 0) {
         	var evt = document.createEvent("CustomEvent");
         	evt.initCustomEvent("playerUpdate", true, true, this.getPlayerData());
         	evt.eventName = "playerUpdate";
@@ -261,6 +322,10 @@ var playState = {
     		dx: this.player.body.velocity.x,
     		dy: this.player.body.velocity.y
     	};
+    },
+
+    setCommand: function(state) {
+    	this.command = state;
     },
 
     activateScare: function() {
@@ -295,3 +360,13 @@ var playState = {
 	    }
     }
 };
+
+function loadScript(url)
+{
+    var body = document.getElementsByTagName('body')[0];
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
+
+    body.appendChild(script);
+}
