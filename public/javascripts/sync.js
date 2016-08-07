@@ -57,13 +57,14 @@
     		userId = Date.now();
 
     		syncDoc.mutate(function (remoteValue) {
+
 	    		if (!remoteValue.playersMap){
 	    			remoteValue.playersMap = new Object(); 
 	    		} 
 	    		remoteValue.playersMap[userId] = playState.getPlayerData();
 	    		return remoteValue;
     		}).then(function() {
-    			console.log(syncDoc.value.players);
+    			console.log(syncDoc.value.playersMap);
     		}).catch(function(err) {
     			console.log(err);
     		});
@@ -71,7 +72,7 @@
 
     		syncDoc.on("updated", function (gameData) {
     			console.log(gameData);
-    			//playState.renderOtherPlayers()
+    			playState.renderOtherPlayers(gameData.playersMap, userId);
     		});
 
 
@@ -82,16 +83,16 @@
 		console.log(err);
 	});
 
-	  playerEl = document.getElementById("player");
-	  playerEl.addEventListener("playerUpdate", function(e){
-	  	syncDoc.mutate(function (remoteValue) {
-                   remoteValue.playersMap[userId] = e.details;
-                    return remoteValue;
-                }).then(function() {
-                    console.log(syncDoc.value.playersMap);
-                }).catch(function(err) {
-                    console.log(err);
-                });
-	  });
+	  // playerEl = document.getElementById("player");
+	  // playerEl.addEventListener("playerUpdate", function(e){
+	  // 	syncDoc.mutate(function (remoteValue) {
+   //                 remoteValue.playersMap[userId] = e.details;
+   //                  return remoteValue;
+   //              }).then(function() {
+   //                  //console.log(syncDoc.value.playersMap);
+   //              }).catch(function(err) {
+   //                  console.log(err);
+   //              });
+	  // });
 
 })();
