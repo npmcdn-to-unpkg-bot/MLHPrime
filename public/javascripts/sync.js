@@ -24,11 +24,7 @@
 	       });
 	  }
 
-	  playerEl = document.getElementById("player");
-	  playerEl.addEventListener("playerUpdate", function(e){
-	  	//update doc
-	  });
-
+	
 	axios.get('/token', {params: {deviceId: getDeviceId()}}).then(function(response) {
 
 		//create syncClient using token sent by the server
@@ -74,6 +70,7 @@
 
     		syncDoc.on("updated", function (gameData) {
     			console.log(gameData);
+    			//playState.renderOtherPlayers()
     		});
 
 
@@ -83,4 +80,17 @@
 	}).catch(function(err){
 		console.log(err);
 	});
+
+	  playerEl = document.getElementById("player");
+	  playerEl.addEventListener("playerUpdate", function(e){
+	  	syncDoc.mutate(function (remoteValue) {
+                   remoteValue.playersMap[userId] = e.details;
+                    return remoteValue;
+                }).then(function() {
+                    console.log(syncDoc.value.playersMap);
+                }).catch(function(err) {
+                    console.log(err);
+                });
+	  });
+
 })();
