@@ -32,7 +32,7 @@ udpPort.open();
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -44,7 +44,9 @@ app.get('/test', function(req, res) {
 app.get('/token', (request, response) => {
   var appName = 'TwilioSyncDemo';
   var identity = randomUsername();
-  var deviceId = request.query.device;
+  console.log(request.query);
+  var deviceId = request.query.deviceId;
+  console.log("deviceId:", deviceId);
 
   // Create a unique ID for the client on their current device
   var endpointId = `${appName}:${identity}:${deviceId}`;
