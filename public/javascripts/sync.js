@@ -84,8 +84,9 @@
 
 	   playerEl = document.getElementById("player");
 	   playerEl.addEventListener("playerUpdate", function(e){
-	   	syncDoc.mutate(function (remoteValue) {
-                    remoteValue.playersMap[userId] = e.details;
+	   syncDoc.mutate(function (remoteValue) {
+	   		console.log(e.detail);
+                    remoteValue.playersMap[userId] = e.detail;
                      return remoteValue;
                  }).then(function() {
                     console.log(syncDoc.value.playersMap);
