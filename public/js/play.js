@@ -41,8 +41,8 @@ var playState = {
             game.camera.follow(player);
 
             scare = false;
-            scarePic = game.add.sprite(0, 0, 'scare');
-			scarePic.scale.set(2, 2);
+            scarePic = game.add.sprite(-150, -150, 'scare');
+			      scarePic.scale.set(1.7, 1.7);
             scarePic.kill();
             time = 0;
     },
