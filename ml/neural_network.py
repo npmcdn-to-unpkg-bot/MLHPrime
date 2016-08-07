@@ -10,18 +10,17 @@ DOWN = "down"
 LEFT = "left"
 RIGHT = "right"
 
-SAMPLE_SIZE = 200
+SAMPLE_SIZE = 50
 
 strToVecOutMap = {
     IDLE: [0, 0, 0, 0, 1],
     UP: [0, 0, 0, 1, 0],
     DOWN: [0, 0, 1, 0, 0],
     LEFT: [0, 1, 0, 0, 0],
-    RIGHT: [0, 1, 0, 0, 0]
+    RIGHT: [1, 0, 0, 0, 0]
 }
 
 STATES = [IDLE, UP, DOWN, LEFT, RIGHT]
-
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
@@ -37,7 +36,7 @@ class NeuralNetwork:
     Args:
         layers - A list of Layers in the order such that the input layer is first and output layer is last. The
     """
-    def __init__(self, layers, regularization=0.005):
+    def __init__(self, layers, regularization=0):
         self._layers = layers
         self._lambda = regularization
 
@@ -69,6 +68,7 @@ class NeuralNetwork:
         A floating point number representing the error
     """
     def calculateCost(self, X, y, thetaList=None):
+        ep = 1e-6
         m = X.shape[0]
         J = 0
         for i in range(m):
@@ -82,7 +82,7 @@ class NeuralNetwork:
                     z = np.dot(a, theta.T)
                     a = sigmoid(z)
                 h = a
-            J += (y * np.log(h) + (1 - y) * np.log(1 - h)).sum()
+            J += (y * np.log(h + ep) + (1 - y) * np.log(1 - h + ep)).sum()
         J = - J / m
         # Regularization
         reg = 0
@@ -109,7 +109,8 @@ class NeuralNetwork:
         checkGrad - If gradient checking should be turned on
         showCost - If the cost should be shown each iter
     """
-    def train(self, X, y, iters=1000, alpha=0.5, checkGrad=False, showCost=False):
+    def train(self, X, y, iters=200, alpha=0.001, checkGrad=False, showCost=False):
+        ep = 1e-5
         m = X.shape[0]
         k = len(self._layers) + 1 # +1 for Input Layer
         for i in range(iters):
@@ -220,7 +221,7 @@ class Layer:
     def __init__(self, numInput, numNodes):
         self._numInput = numInput
         self._numNodes = numNodes
-        self._theta = np.random.rand(numNodes, numInput + 1)
+        self._theta = 0.001 * np.random.rand(numNodes, numInput + 1)
 
     def validateXSize(self, X):
         assert X.shape[1] == self._numInput, "The given X was a " + str(X.shape[0]) + " * " + str(X.shape[1]) + \
@@ -253,8 +254,8 @@ def unrollSamples(samples):
 
 def createTrainAndSerializeNetwork(data):
     layers = []
-    layers.append(Layer(SAMPLE_SIZE * 4, SAMPLE_SIZE * 7))
-    layers.append(Layer(SAMPLE_SIZE * 7, len(STATES)))
+    layers.append(Layer(SAMPLE_SIZE * 4, SAMPLE_SIZE))
+    layers.append(Layer(SAMPLE_SIZE, len(STATES)))
     ann = NeuralNetwork(layers)
     """
     FORMAT: {
@@ -271,7 +272,6 @@ def createTrainAndSerializeNetwork(data):
     inp = []
     out = []
     for key, samples in data.items():
-        assert(len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE))
         vec = unrollSamples(samples)
         inp.append(vec)
         out.append(strToVecOutMap[key])
@@ -282,7 +282,6 @@ def createTrainAndSerializeNetwork(data):
     print(serialized)
 
 def predictState(serialized, samples):
-    assert(len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE))
     ann = NeuralNetwork.fromSerialized(hashMap)
     X = unrollSamples(samples)
     y = ann.predict(np.array([X])).tolist()[0]

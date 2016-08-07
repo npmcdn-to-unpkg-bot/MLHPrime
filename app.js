@@ -155,22 +155,23 @@ var stopTrain = function(){
     label: modeName,
     data: trainData,
   };
-  modeName= null;
+  modeName = null;
   trainRes.json(trainData);
   trainData = [];
 };
 
 // FIXME: Add support for multiple training at the same time. This will break if more than a single person uses this at a time
+var counter = 0;
 udpPort.on("message", function (oscData) {
-  if (oscData.address == "/muse/eeg") {
-    if (trainMode){
+  if (trainMode && oscData.address == "/muse/eeg"){
+    if (counter == 4){
       trainData.push([
         oscData.args[0],
         oscData.args[1],
         oscData.args[2],
         oscData.args[3],
       ]);
-      if (trainData.length == SAMPLE_SIZE){
+      if (trainData.length == SAMPLE_SIZE / 4){
         stopTrain()
       }
     } else {
@@ -184,7 +185,9 @@ udpPort.on("message", function (oscData) {
         oscData.args[2],
         oscData.args[3],
         ]);
+      counter = 0;
     }
+    counter++;
   }
 });
 
