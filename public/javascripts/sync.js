@@ -1,6 +1,5 @@
-(function () {
 
-	 //Manages the state of our access token we got from the server
+//Manages the state of our access token we got from the server
 	  var accessManager;
 
 	  //Our interface to the Sync service
@@ -10,6 +9,9 @@
 	  //synchronisation primitive, for this demo
 	  var syncDoc;
 
+	  var index;
+
+(function () {
 	  var getDeviceId = function() {
 	    return 'browser-' + 
 	      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -24,22 +26,17 @@
 		accessManager = new Twilio.AccessManager(response.data.token);
     	syncClient = new Twilio.Sync.Client(accessManager);
 
-    	console.log(response);
-
     	syncClient.document('gameData').then(function(doc) {
     		syncDoc = doc;
-
-    		var gameData = syncDoc.get();
-
-    		syncDoc.mutate(function (gameData) {
-	    		if (!gameData.players){
-	    			gameData.players = [player];
+    		syncDoc.mutate(function (remoteValue) {
+    			
+	    		if (!remoteValue.players){
+	    			remoteValue.players = [playState.getPlayerData()];
 	    		} else {
-	    			if (gameData.players.length < 2) {
-	    				gameData.players.push(player);
-	    			}
+	    			remoteValue.players.push(playState.getPlayerData());
 	    		}
-	    		return gameData;
+	    		index = remoteValue.players.length - 1;
+	    		return remoteValue;
     		}).then(function() {
     			console.log(syncDoc.value.players);
     		}).catch(function(err) {
@@ -54,8 +51,6 @@
 
 
     	});
-
-
 
 	}).catch(function(err){
 		console.log(err);
