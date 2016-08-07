@@ -19,12 +19,12 @@ var trainState = {
     this.stage = 0;
     this.total = 0;
     this.timer = game.time.create(false);
-    this.timer.loop(1000, this.updateCounter, this);
+    this.timer.loop(1000, this.updateCounter.bind(this), this);
 
     this.keys = game.input.keyboard;
     this.keys.addCallbacks(this,function(e){
       if(e.keyCode == 32 && !this.timer.running){
-        requestByStage(Math.floor(this.stage));
+        this.requestByStage(Math.floor(this.stage));
       }
     });
   },
@@ -32,58 +32,58 @@ var trainState = {
     switch(stage){
       case 0:
         this.timer.start();
-        $.post('/startTrain/idle', function(data, status){
+        jQuery.post('/startTrain/idle', function(data, status){
           this.trainingData.idle.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(1);
+          this.setStage(1);
         });
         this.text.setText("Listening");
         break;
       case 1: case 2:
         this.timer.start();
-        $.post('/startTrain/up', function(data, status){
+        jQuery.post('/startTrain/up', function(data, status){
           this.trainingData.up = label.reduce(function(prev, cur){
             return prev.concat(cur);
           });
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
       case 3: case 4:
         this.timer.start();
-        $.post('/startTrain/down', function(data, status){
+        jQuery.post('/startTrain/down', function(data, status){
           this.trainingData.down.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
       case 5: case 6: case 7:
         this.timer.start();
-        $.post('/startTrain/left', function(data, status){
+        jQuery.post('/startTrain/left', function(data, status){
           this.trainingData.left.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
       case 8: case 9: case 10:
         this.timer.start();
-        $.post('/startTrain/right', function(data, status){
+        jQuery.post('/startTrain/right', function(data, status){
           this.trainingData.right.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
-          setStage(stage+1);
+          this.setStage(stage+1);
         });
         this.text.setText("Listening");
         break;
     }
   },
   updateCounter: function(){
-    this.text.setTest(this.text + ".");
+    this.text.setText(this.text + ".");
   },
   setStage: function(stage){
     this.stage = stage;
@@ -95,12 +95,12 @@ var trainState = {
       case 6: case 9:
         this.timer.stop();
         this.text.setText("and again..");
-        setTimeout(function(){requestByStage(this.stage)}, 1000);
+        setTimeout(function(){this.requestByStage(this.stage)}, 1000);
         break;
       case 2: case 4: case 7: case 10:
         this.timer.stop();
         this.text.setText("and once more.");
-        setTimeout(function(){requestByStage(this.stage)}, 1000);
+        setTimeout(function(){this.requestByStage(this.stage)}, 1000);
         break;
       case 3:
         this.timer.stop();

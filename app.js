@@ -95,7 +95,7 @@ var predict = function (eegData) {
   pyshell.run('./ml/predict.py', options, function(err, results){
     if (err){
       console.log(err);
-      
+
     } else{
       socket.emit('new_command', results);
     }
