@@ -21,7 +21,7 @@ udpPort.open();
 const randomUsername = require('./randos');
 const AccessToken = require('twilio-temp').AccessToken;
 const SyncGrant = AccessToken.SyncGrant;
-const SAMPLE_SIZE = 50;
+const SAMPLE_SIZE = 200;
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -137,29 +137,29 @@ var stopTrain = function(){
     label: modeName,
     data: trainData,
   };
-  modeName= null;
+  modeName = null;
   trainRes.json(trainData);
   trainData = [];
 };
 
-var counter = 0;
 // FIXME: Add support for multiple training at the same time. This will break if more than a single person uses this at a time
+var counter = 0;
 udpPort.on("message", function (oscData) {
-  if (oscData.address == "/muse/eeg") {
-    if (trainMode & counter == 3){
+  if (trainMode && oscData.address == "/muse/eeg"){
+    if (counter == 4){
       trainData.push([
         oscData.args[0],
         oscData.args[1],
         oscData.args[2],
         oscData.args[3],
       ]);
-      couneter = 0;
-      if (trainData.length == SAMPLE_SIZE){
+      if (trainData.length == SAMPLE_SIZE / 4){
         stopTrain()
       }
+      counter = 0;
     }
+    counter++;
   }
-  counter++;
 });
 
 
