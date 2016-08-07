@@ -19,7 +19,7 @@ var trainState = {
     this.stage = 0;
     this.total = 0;
     this.timer = game.time.create(false);
-    this.timer.loop(1000, this.updateCounter, this);
+    this.timer.loop(1000, this.updateCounter.bind(this), this);
 
     this.keys = game.input.keyboard;
     this.keys.addCallbacks(this,function(e){
@@ -32,7 +32,7 @@ var trainState = {
     switch(stage){
       case 0:
         this.timer.start();
-        $.post('/startTrain/idle', function(data, status){
+        jQuery.post('/startTrain/idle', function(data, status){
           this.trainingData.idle.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
@@ -42,7 +42,7 @@ var trainState = {
         break;
       case 1: case 2:
         this.timer.start();
-        $.post('/startTrain/up', function(data, status){
+        jQuery.post('/startTrain/up', function(data, status){
           this.trainingData.up = label.reduce(function(prev, cur){
             return prev.concat(cur);
           });
@@ -52,7 +52,7 @@ var trainState = {
         break;
       case 3: case 4:
         this.timer.start();
-        $.post('/startTrain/down', function(data, status){
+        jQuery.post('/startTrain/down', function(data, status){
           this.trainingData.down.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
@@ -62,7 +62,7 @@ var trainState = {
         break;
       case 5: case 6: case 7:
         this.timer.start();
-        $.post('/startTrain/left', function(data, status){
+        jQuery.post('/startTrain/left', function(data, status){
           this.trainingData.left.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));
@@ -72,7 +72,7 @@ var trainState = {
         break;
       case 8: case 9: case 10:
         this.timer.start();
-        $.post('/startTrain/right', function(data, status){
+        jQuery.post('/startTrain/right', function(data, status){
           this.trainingData.right.concat(label.reduce(function(prev, cur){
             return prev.concat(cur);
           }));

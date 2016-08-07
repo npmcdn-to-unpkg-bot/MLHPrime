@@ -88,14 +88,14 @@ app.post('/startTrain/:name', function(req, res){
   trainRes = res;
 });
 
-var perdict = function (eegData) {
+var predict = function (eegData) {
   var options = {
     args: [eeg, neu]
   }
   pyshell.run('./ml/predict.py', options, function(err, results){
     if (err){
       console.log(err);
-      
+
     } else{
       socket.emit('new_command', results);
     }
