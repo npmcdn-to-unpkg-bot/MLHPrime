@@ -78,6 +78,14 @@ var playState = {
     		} else
     			here = path.pop();
     	}
+      switch(Math.floor(Math.random()*2)){
+        case 0:
+          horiz[Math.floor(Math.random()*x)][Math.floor(Math.random()*2)*game.world.bounds.height] = true;
+          break;
+        case 1:
+          verti[Math.floor(Math.random()*2)*game.world.bounds.width][Math.floor(Math.random()*y)] = true;
+          break;
+      }
     	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti});
       return;
     },
