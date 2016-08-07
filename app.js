@@ -56,8 +56,8 @@ app.get('/token', (request, response) => {
   // Create an access token which we will sign and return to the client,
   // containing the grant we just created
   var token = new AccessToken(
-    config.accountSid, 
-    config.apiKey, 
+    config.accountSid,
+    config.apiKey,
     config.apiSecret
   );
   token.addGrant(syncGrant);
