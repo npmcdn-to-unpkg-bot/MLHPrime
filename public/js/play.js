@@ -7,6 +7,7 @@ var playState = {
     scare: null,
     time: null,
     scarePic: null,
+    scream: null,
 
 	preload: function() {
       game.load.spritesheet('player', 'assets/player.png', 14, 21);
@@ -15,36 +16,38 @@ var playState = {
       game.load.image('background', 'assets/background.png');
       game.load.image('wall', 'assets/wall.png');
 			game.load.image('scare', 'assets/jumpscare.png');
+      game.load.image('door', 'assets/doors.png');
 
       game.load.audio('scream', 'assets/scream.m4a');
     },
 
     create: function() {
-            game.physics.startSystem(Phaser.Physics.ARCADE);
+      game.physics.startSystem(Phaser.Physics.ARCADE);
 
-            game.add.tileSprite(0, 0, 800, 800, 'background');
-            game.world.setBounds(0, 0, 800, 800);
-            this.createMaze(12, 12);
+      game.add.tileSprite(0, 0, 800, 800, 'background');
+      game.world.setBounds(0, 0, 800, 800);
+      this.createMaze(12, 12);
 
-            player = game.add.sprite(32, 32, 'player');
-            game.physics.arcade.enable(player);
-            player.anchor.setTo(0.5, 0.5);
-            player.scale.set(1.3, 1.3);
-            player.body.collideWorldBounds=true;
+      this.player = game.add.sprite(32, 32, 'player');
+      game.physics.arcade.enable(this.player);
+      this.player.anchor.setTo(0.5, 0.5);
+      this.player.scale.set(1.3, 1.3);
+      this.player.body.collideWorldBounds=true;
 
-            player.animations.add('right', [0, 1, 2, 3], 12, true);
-            player.animations.add('left', [4, 5, 6, 7], 12, true);
-            player.animations.add('up', [8, 9, 10, 11], 12, true);
-            player.animations.add('down', [12, 13, 14, 15], 12, true);
+      this.player.animations.add('right', [0, 1, 2, 3], 12, true);
+      this.player.animations.add('left', [4, 5, 6, 7], 12, true);
+      this.player.animations.add('up', [8, 9, 10, 11], 12, true);
+      this.player.animations.add('down', [12, 13, 14, 15], 12, true);
 
-            cursors = game.input.keyboard.createCursorKeys();
-            game.camera.follow(this.player);
+      this.cursors = game.input.keyboard.createCursorKeys();
+      game.camera.follow(this.player);
 
-            scare = false;
-            scarePic = game.add.sprite(-150, -150, 'scare');
-			      scarePic.scale.set(1.7, 1.7);
-            scarePic.kill();
-            time = 0;
+      this.scare = false;
+      this.scarePic = game.add.sprite(-150, -150, 'scare');
+			this.scarePic.scale.set(1.7, 1.7);
+      this.scarePic.kill();
+  		this.scream = game.add.audio('scream', 5);
+      this.time = 0;
     },
 
     createMaze: function(x,y) {
@@ -78,12 +81,23 @@ var playState = {
     		} else
     			here = path.pop();
     	}
+      var dX, dY, n;
       switch(Math.floor(Math.random()*2)){
         case 0:
-          horiz[Math.floor(Math.random()*x)][Math.floor(Math.random()*2)*game.world.bounds.height] = true;
+          n = Math.floor(Math.random()*2);
+          dX = Math.floor(Math.random()*x);
+          dY = n*(y-1);
+          this.door = game.add.sprite((dX*2+1)*32, ((dY+n)*2)*32, 'door');
+          console.log("h", dX, dY);
+          horiz[dX][dY] = true;
           break;
         case 1:
-          verti[Math.floor(Math.random()*2)*game.world.bounds.width][Math.floor(Math.random()*y)] = true;
+          n = Math.floor(Math.random()*2);
+          dX = n*(x-1);
+          dY = Math.floor(Math.random()*y);
+          this.door = game.add.sprite(((dX+n)*2)*32, (dY*2+1)*32, 'door');
+          verti[dX][dY] = true;
+          console.log("v", dX, dY);
           break;
       }
     	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti});
@@ -97,7 +111,7 @@ var playState = {
     	for (var j= 0; j<m.x*2+1; j++) {
     		if (0 == j%2){
     			for (var k=0; k<m.y*2+1; k++){
-    				if (0 == k%2){
+    				if (0 == k%2 && !m.verti[j][k] && !m.horix[j][k]){
     					var innerWall = this.walls.create(j*32, k*32, 'wall');
               innerWall.body.immovable = true;
             }else{
@@ -129,7 +143,7 @@ var playState = {
 
         if(this.cursors.up.isDown)
         {
-        	this.activateScare();
+        	//this.activateScare();
             this.player.body.velocity.y = -150;
             if(this.player.dirX == 0) this.player.animations.play('up');
             this.player.dirY = -1;
@@ -177,9 +191,9 @@ var playState = {
         }
 
     	if(this.scare) {
-    		time++;
-    		if(time > 50) {
-    			time = 0;
+    		this.time++;
+    		if(this.time > 50) {
+    			this.time = 0;
     			this.scare = false;
     			this.scarePic.kill();
     		}
@@ -198,11 +212,13 @@ var playState = {
     },
 
     activateScare: function() {
-      var scream = game.add.audio('scream', 5);
-      scream.play();
-      setTimeout(function(){scream.stop();}, 1000);
-    	this.scare = true;
-    	this.scarePic.reset(0, 0);
+      this.scream.play();
+      setTimeout(function(){
+      	if(this.scream)
+      		this.scream.stop();
+      }, 1000);
+		this.scare = true;
+		this.scarePic.reset(0, 0);
     },
 
     activatePuzzle: function() {
