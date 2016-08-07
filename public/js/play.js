@@ -138,6 +138,15 @@ var playState = {
     	return;
     },
 
+    renderOtherPlayers: function(otherPlayers) {
+    	for (var key in otherPlayers) {
+		   if (otherPlayers.hasOwnProperty(key)) {
+		      var otherPlayer = otherPlayers[key];
+
+		   }
+		}
+    },
+
     setMaze: function(mazeMatrix) {	
       	this.displayMaze(this.mazeMatrix);
     },
