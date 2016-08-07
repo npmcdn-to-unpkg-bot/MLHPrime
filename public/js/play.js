@@ -32,6 +32,7 @@ var playState = {
       game.add.tileSprite(0, 0, 800, 800, 'background');
       game.world.setBounds(0, 0, 800, 800);
 
+      console.log("create player");
       this.player = game.add.sprite(47, 47, 'player');
       game.physics.arcade.enable(this.player);
       this.player.anchor.setTo(0.5, 0.5);
@@ -141,9 +142,9 @@ var playState = {
     	return;
     },
 
-    renderOtherPlayers: function(players) {
+    renderOtherPlayers: function(players, userId) {
     	for (var key in players) {
-		   if (players.hasOwnProperty(key)) {
+		   if (players.hasOwnProperty(key) && key != userId) {
 		   		var temp = players[key];
 		   		if(!(key in this.otherPlayers)) {
 		   			var newOtherPlayer = game.add.sprite(temp.x, temp.y, 'player');
