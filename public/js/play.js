@@ -30,8 +30,8 @@ var playState = {
     create: function() {
       game.physics.startSystem(Phaser.Physics.ARCADE);
 
-      game.add.tileSprite(0, 0, 1000, 1000, 'background');
-      game.world.setBounds(0, 0, 1000, 1000);
+      game.add.tileSprite(0, 0, 800, 800, 'background');
+      game.world.setBounds(0, 0, 800, 800);
       this.player = game.add.sprite(47, 47, 'player');
       game.physics.arcade.enable(this.player);
       this.player.anchor.setTo(0.5, 0.5);
@@ -144,7 +144,7 @@ var playState = {
     displayMaze: function(m) {
   	  this.walls = game.add.group();
       this.walls.enableBody = true;
-      
+
       this.door = game.add.sprite(m.dX*32, m.dY*32, 'door');
       this.door = game.add.sprite(m.dX*32, m.dY*32, 'door');
 
@@ -182,9 +182,9 @@ var playState = {
     	return;
     },
 
-    renderOtherPlayers: function(players) {
+    renderOtherPlayers: function(players, userId) {
     	for (var key in players) {
-		   if (players.hasOwnProperty(key)) {
+		   if (players.hasOwnProperty(key) && key != userId) {
 		   		var temp = players[key];
 		   		if(!(key in this.otherPlayers)) {
 		   			var newOtherPlayer = game.add.sprite(temp.x, temp.y, 'player');
@@ -231,7 +231,7 @@ var playState = {
         this.player.body.velocity.y = 0;
         this.player.body.velocity.x = 0;
 
-        if(this.command == 'up') 
+        if(this.command == 'up' || this.cursors.up.isDown) 
         {
         	if(this.player.dirX == 1 && this.player.dirY == 0) {
         		this.player.body.velocity.x = 100;
@@ -276,7 +276,7 @@ var playState = {
         */
 
         if(this.delta % 20 == 0) {
-	        if(this.command == 'right')
+	        if(this.command == 'right' || this.cursors.right.isDown)
 	        {
 	        	if(this.player.dirX == 0 && this.player.dirY == 1) {
 	        		this.player.dirX = 1;
@@ -296,7 +296,7 @@ var playState = {
 	        		this.player.frame = 10;
 	        	}
 	        }
-	        else if(this.command == 'left')
+	        else if(this.command == 'left' || this.cursors.left.isDown)
 	        {
 	        	if(this.player.dirX == 0 && this.player.dirY == 1) {
 	        		this.player.dirX = -1;
