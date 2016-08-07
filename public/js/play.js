@@ -9,12 +9,14 @@ var playState = {
     scarePic: null,
 
 	preload: function() {
-            game.load.spritesheet('player', 'assets/player.png', 14, 21);
+      game.load.spritesheet('player', 'assets/player.png', 14, 21);
 
-            game.load.image('tileset', 'assets/background.png')
-            game.load.image('background', 'assets/background.png');
-            game.load.image('wall', 'assets/wall.png');
+      game.load.image('tileset', 'assets/background.png')
+      game.load.image('background', 'assets/background.png');
+      game.load.image('wall', 'assets/wall.png');
 			game.load.image('scare', 'assets/jumpscare.png');
+
+      game.load.audio('scream', 'assets/scream.m4a');
     },
 
     create: function() {
@@ -119,13 +121,13 @@ var playState = {
 
         if(cursors.up.isDown)
         {
-        	this.activateScare();
-            player.body.velocity.y = -150;
-            if(player.dirX == 0) player.animations.play('up');
-            player.dirY = -1;
-            if(!cursors.left.isDown && !cursors.right.isDown) {
-                player.dirX = 0;
-            }
+          this.activateScare();
+          player.body.velocity.y = -150;
+          if(player.dirX == 0) player.animations.play('up');
+          player.dirY = -1;
+          if(!cursors.left.isDown && !cursors.right.isDown) {
+              player.dirX = 0;
+          }
         }
         else if(cursors.down.isDown)
         {
@@ -177,6 +179,9 @@ var playState = {
     },
 
     activateScare: function() {
+      var scream = game.add.audio('scream', 5);
+      scream.play();
+      setTimeout(function(){scream.stop();}, 1000);
     	scare = true;
     	scarePic.reset(0, 0);
     },
