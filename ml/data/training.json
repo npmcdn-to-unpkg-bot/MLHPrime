@@ -1,0 +1,13 @@
+{
+  "relaxed": [{
+    "channel1": 1,
+    "channel2": 2,
+    "channel3": 3,
+    "channel4": 4
+  }, {
+    "channel1": 1,
+    "channel2": 2,
+    "channel3": 3,
+    "channel4": 5
+  }]
+}

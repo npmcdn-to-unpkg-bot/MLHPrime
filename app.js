@@ -5,28 +5,22 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var fs = require('fs');
-
-const AccessToken = require('twilio-temp').AccessToken;
-const SyncGrant = AccessToken.SyncGrant;
-
+var pyshell = require('python-shell');
 var config = require('./config');
-const randomUsername = require('./randos');
-
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-
 var osc = require('osc');
-
 var udpPort = new osc.UDPPort({
     localAddress: "127.0.0.1",
     localPort: 5002,
 });
 
-
 udpPort.open();
 
-
+const randomUsername = require('./randos');
+const AccessToken = require('twilio-temp').AccessToken;
+const SyncGrant = AccessToken.SyncGrant;
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -106,6 +100,36 @@ app.post('/stopTrain', function(req, res){
   });
   modeName = null;
 });
+
+app.post('/predict', function(req, res){
+  eegData = req.body.data; // This should be a JSON in the form of [float, float, float, float]
+  var options = {
+    args: [JSON.stringify(eegData)]
+  }
+  pyshell.run('./ml/predict.py', options, function(err, results){
+    if (err){
+      console.log(err);
+      res.status(500).json({});
+    } else{
+      console.log(results);
+      res.json(results);
+    }
+  });
+})
+
+app.post('/trainANN', function(req, res){
+  pyshell.run('./ml/train.py', function(err, results) {
+    if (err){
+      console.log(err);
+      res.status(500).json({});
+    }
+    else{
+      console.log(results);
+      res.json(results);
+    }
+  });
+});
+
 
 trainData = []
 udpPort.on("message", function (oscData) {
