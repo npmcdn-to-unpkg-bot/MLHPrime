@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var fs = require('fs');
 
 const AccessToken = require('twilio-temp').AccessToken;
 const SyncGrant = AccessToken.SyncGrant;
@@ -73,6 +74,53 @@ app.get('/token', (request, response) => {
 });
 
 
+
+trainMode = false
+modeName = null
+
+app.post('/startTrain/:name', function(req, res){
+  trainMode = true;
+  modeName = req.params.name;
+  response = res.json({
+    success: true
+  });
+});
+
+app.post('/stopTrain', function(req, res){
+  trainMode = false;
+  json = {
+    data: trainData
+  };
+  trainData = null;
+  fileName = modeName + "-" + Date.now() + ".json"
+  fs.writeFile("./data/" + fileName, JSON.stringify(json), function(err) {
+    if(err) {
+        return console.log(err);
+    }
+    console.log("Saved " + fileName);
+  });
+  response = res.json({
+    name: modeName
+  });
+  modeName = null;
+});
+
+trainData = []
+udpPort.on("message", function (oscData) {
+  if (oscData.address == "/muse/eeg") {
+    if (trainMode){
+      trainData.push({
+        channel1: oscData.args[0],
+        channel2: oscData.args[1],
+        channel3: oscData.args[2],
+        channel4: oscData.args[3],
+      });
+    }
+  }
+});
+
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -88,6 +136,7 @@ if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.send(err);
+    next();
   });
 }
 
@@ -96,6 +145,7 @@ if (app.get('env') === 'development') {
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.send(err);
+  next();
 });
 
 /*
@@ -103,13 +153,6 @@ Generate an Access Token for a sync application user - it generates a random
 username for the client requesting a token, and takes a device ID as a query
 parameter.
 */
-
-udpPort.on("message", function (oscData) {
-  if (oscData.address == "/muse/eeg") {
-    console.log(oscData.args);
-  }
-});
-
 
 module.exports = {
   app: app,
