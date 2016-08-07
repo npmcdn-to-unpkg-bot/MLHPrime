@@ -87,7 +87,7 @@ var trainState = {
   },
   setStage: function(stage){
     this.stage = stage;
-    switch(stage)}{
+    switch(stage){
       case 1:
         this.timer.stop();
         this.text.setText("Next, tilt your head up and back \n down again slowly. Press space to begin.");
@@ -115,6 +115,7 @@ var trainState = {
         this.text.setText("Lastly, turn you head to the left \nand back again slowly. Press space to begin.");
         break;
       case 11:
+        this.trained = true;
         this.text.setText("Good job. Now You're ready to play!");
     }
   },
