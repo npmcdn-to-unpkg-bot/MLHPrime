@@ -9,7 +9,7 @@
 	  //synchronisation primitive, for this demo
 	  var syncDoc;
 
-	  var index;
+	  var userId;
 
 (function () {
 	  var getDeviceId = function() {
@@ -28,17 +28,19 @@
 
     	syncClient.document('gameData').then(function(doc) {
     		syncDoc = doc;
+    		userId = Date.now();
     		syncDoc.mutate(function (remoteValue) {
-    			
-	    		if (!remoteValue.players){
-	    			remoteValue.players = [playState.getPlayerData()];
-	    		} else {
-	    			remoteValue.players.push(playState.getPlayerData());
-	    		}
-	    		index = remoteValue.players.length - 1;
+
+    			//delete remoteValue.playersMap;
+
+	    		if (!remoteValue.playersMap){
+	    			remoteValue.playersMap = new Object(); 
+	    		} 
+	    		remoteValue.playersMap[userId] = playState.getPlayerData();
+	    		
 	    		return remoteValue;
     		}).then(function() {
-    			console.log(syncDoc.value.players);
+    			console.log(syncDoc.value.playersMap);
     		}).catch(function(err) {
     			console.log(err);
     		});
