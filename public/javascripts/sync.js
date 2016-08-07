@@ -13,6 +13,8 @@
 
 	  var index;
 
+	  var playerEl;
+
 (function () {
 	  var getDeviceId = function() {
 	    return 'browser-' + 
@@ -21,6 +23,11 @@
 	         return v.toString(16);
 	       });
 	  }
+
+	  playerEl = document.getElementById("player");
+	  playerEl.addEventListener("playerUpdate", function(e){
+	  	//update doc
+	  });
 
 	axios.get('/token', {params: {deviceId: getDeviceId()}}).then(function(response) {
 
@@ -34,9 +41,11 @@
     		if(!syncMazeDoc.value) {
 	    		syncMazeDoc.set(playState.createMaze(12, 12));
 	    	} else {
-	    		console.log();
+	    		console.log(syncMazeDoc.value);
 	    		playState.mazeMatrix = syncMazeDoc.value;
 	    	}
+    		playState.displayMaze(playState.mazeMatrix);
+      		playState.spawnScareTraps();
 
     		syncMazeDoc.on("updated", function (mazeData) {
     			console.log(mazeData);
