@@ -24,7 +24,6 @@ var playState = {
 	  game.load.image('scare', 'assets/jumpscare.png');
       game.load.image('door', 'assets/doors.png');
       game.load.image('trap', 'assets/trap.png');
-
       game.load.audio('scream', 'assets/scream.m4a');
     },
 
@@ -33,8 +32,6 @@ var playState = {
 
       game.add.tileSprite(0, 0, 1000, 1000, 'background');
       game.world.setBounds(0, 0, 1000, 1000);
-
-      console.log("create player");
       this.player = game.add.sprite(47, 47, 'player');
       game.physics.arcade.enable(this.player);
       this.player.anchor.setTo(0.5, 0.5);
@@ -63,6 +60,37 @@ var playState = {
       this.command = 'idle';
 
       loadScript("javascripts/sync.js")
+    },
+
+    getOpenSpaces: function(m) {
+      var open = [];
+      for(var j = 1; j < m.x*2; j++){
+        if (1 == j%2){
+    			for (var k=1; k<m.y*2; k++){
+            if(j == m.dX && k == m.dY){
+              continue;
+            }
+    				else if (1 == k%2){
+    					//open.push({x: j, y: k});
+            }else{
+    					if (m.verti[Math.floor((j-1)/2)][Math.floor(k/2)]){
+    						open.push({x: j, y:k});
+              }
+            }
+          }
+    		}else{
+    			for (var k=1; k<m.y*2; k++){
+            if(j == m.dX && k == m.dY){
+              continue;
+            }else if (1 == k%2){
+    					if (m.horiz[Math.floor((j)/2)][Math.floor((k-1)/2)]){
+                open.push({x: j, y:k});
+              }
+            }
+          }
+        }
+      }
+      return open;
     },
 
     createMaze: function(x,y) {
@@ -101,33 +129,32 @@ var playState = {
       var dX, dY, n;
       switch(Math.floor(Math.random()*2)){
         case 0:
-          n = Math.floor(Math.random()*2);
-          dX = Math.floor(Math.random()*x);
-          dY = n*(y-1);
-          this.door = game.add.sprite((dX*2+1)*32, ((dY+n)*2)*32, 'door');
-          horiz[dX][dY] = true;
+          dX = Math.floor(Math.random()*x)*2+1;
+          dY = y*Math.floor(Math.random());
           break;
         case 1:
-          n = Math.floor(Math.random()*2);
-          dX = n*(x-1);
-          dY = Math.floor(Math.random()*y);
-          this.door = game.add.sprite(((dX+n)*2)*32, (dY*2+1)*32, 'door');
-          verti[dX][dY] = true;
+          dX = x*Math.floor(Math.random());
+          dY = Math.floor(Math.random()*y)*2+1;
           break;
       }*/
       this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti, dX: 12, dY:12};
-    	
       return this.mazeMatrix;
     },
 
     displayMaze: function(m) {
-	  this.walls = game.add.group();
+  	  this.walls = game.add.group();
       this.walls.enableBody = true;
+      
+      this.door = game.add.sprite(m.dX*32, m.dY*32, 'door');
+      this.door = game.add.sprite(m.dX*32, m.dY*32, 'door');
 
     	for (var j= 0; j<m.x*2+1; j++) {
     		if (0 == j%2){
     			for (var k=0; k<m.y*2+1; k++){
-    				if (0 == k%2 && (j != m.dX || k != m.dY)){
+            if(j == m.dX && k == m.dY){
+              continue;
+            }
+    				else if (0 == k%2){
     					var innerWall = this.walls.create(j*32, k*32, 'wall');
               innerWall.body.immovable = true;
             }else{
@@ -139,7 +166,9 @@ var playState = {
           }
     		}else{
     			for (var k=0; k<m.y*2+1; k++){
-    				if (0 == k%2){
+            if(j == m.dX && k == m.dY){
+              continue;
+            }else if (0 == k%2){
     					if (!(k>0 && m.horiz[Math.floor((j-1)/2)][Math.floor(k/2-1)])){
                 var vWall = this.walls.create(j*32, k*32, 'wall');
                 vWall.body.immovable = true;
@@ -153,9 +182,9 @@ var playState = {
     	return;
     },
 
-    renderOtherPlayers: function(players, userId) {
+    renderOtherPlayers: function(players) {
     	for (var key in players) {
-		   if (players.hasOwnProperty(key) && key != userId) {
+		   if (players.hasOwnProperty(key)) {
 		   		var temp = players[key];
 		   		if(!(key in this.otherPlayers)) {
 		   			var newOtherPlayer = game.add.sprite(temp.x, temp.y, 'player');
@@ -174,7 +203,7 @@ var playState = {
 		}
     },
 
-    setMaze: function(mazeMatrix) {	
+    setMaze: function(mazeMatrix) {
       	this.displayMaze(this.mazeMatrix);
     },
 
@@ -193,6 +222,11 @@ var playState = {
 	        	}
 	        }) ;
 	    }
+
+        //if(Phaser.Rectangle.contains(this.door.getBounds(), this.player.centerX, this.player.centerY)){
+          //sound
+          //game.state.start("play");
+        //}
 
         this.player.body.velocity.y = 0;
         this.player.body.velocity.x = 0;
@@ -329,11 +363,12 @@ var playState = {
     },
 
     activateScare: function() {
-      this.scream.play();
-      setTimeout(function(){
-      	if(this.scream)
-      		this.scream.stop();
-      }, 1000);
+
+    this.scream.play();
+    setTimeout(function(){
+    	if(this.scream)
+    		this.scream.stop();
+    }, 1000);
 		this.scare = true;
 		this.scarePic.reset(0, 0);
     },
@@ -346,17 +381,16 @@ var playState = {
     	this.scareTraps = [];
     	var trapCoords = [];
     	for(var i = 0; i < 3; i++) {
-	    	var x = Math.floor(Math.random() * 12);
-	    	var y = Math.floor(Math.random() * 12);
-	    	while(this.mazeMatrix.horiz[x][y] || this.mazeMatrix.verti[x][y] || trapCoords.filter(function(trap){
-	    		return trap.x = x && trap.y == y;
+        var space = this.openSpaces[Math.floor(Math.random()*this.openSpaces.length)];
+
+	    	while(trapCoords.filter(function(trap){
+	    		return trap.x == space.x && trap.y == space.y;
 	    	}).length > 0) {
-	    		x = Math.floor(Math.random() * 12);
-	    		y = Math.floor(Math.random() * 12);
+	    		space = this.openSpaces[Math.floor(Math.random()*this.openSpaces.length)];
 	    	}
-	    	var trap = game.add.sprite(x * game.world.width/12, y * game.world.height/12, 'trap');
+	    	var trap = game.add.sprite(space.x*32, space.y*32, 'trap');
 	    	this.scareTraps.push(trap);
-	    	trapCoords.push({x: x, y : y});
+	    	trapCoords.push({x: space.x, y : space.y});
 	    }
     }
 };

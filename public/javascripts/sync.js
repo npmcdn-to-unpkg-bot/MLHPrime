@@ -57,7 +57,8 @@
     		syncDoc = doc;
 
     		syncDoc.mutate(function (remoteValue) {
-    			remoteValue.playersMap = null;
+    			// remoteValue.playersMap = null;
+    			// remoteValue.players = null;
 	    		if (!remoteValue.playersMap){
 	    			remoteValue.playersMap = new Object(); 
 	    		} 
@@ -87,13 +88,13 @@
    playerEl.addEventListener("playerUpdate", function(e){
    	if(syncDoc){
 	   syncDoc.mutate(function (remoteValue) {
-	                remoteValue.playersMap[userId] = e.detail;
-	                 return remoteValue;
-	             }).then(function() {
-	                //console.log(syncDoc.value.playersMap);
-	             }).catch(function(err) {
-	                 console.log(err);
-	             });
+            remoteValue.playersMap[userId] = e.detail;
+             return remoteValue;
+         }).then(function() {
+            //console.log(syncDoc.value.playersMap);
+         }).catch(function(err) {
+             console.log(err);
+         });
 	  }
    });
 
