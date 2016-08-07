@@ -29,7 +29,11 @@ var playState = {
 
       game.add.tileSprite(0, 0, 800, 800, 'background');
       game.world.setBounds(0, 0, 800, 800);
-      this.createMaze(12, 12);
+      if(this.mazeMatrix) {
+      	this.displayMaze(this.mazeMatrix);
+      } else {
+      	this.displayMaze(this.createMaze(12, 12));
+      }
 
       this.player = game.add.sprite(32, 32, 'player');
       game.physics.arcade.enable(this.player);
@@ -103,8 +107,8 @@ var playState = {
           break;
       }
       this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti, dX: dX, dY:dY};
-    	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti,  dX: dX, dY:dY});
-      return;
+    	
+      return this.mazeMatrix;
     },
 
     displayMaze: function(m) {

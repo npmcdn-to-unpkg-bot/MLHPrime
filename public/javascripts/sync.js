@@ -9,6 +9,8 @@
 	  //synchronisation primitive, for this demo
 	  var syncDoc;
 
+	  var syncMazeDoc;
+
 	  var index;
 
 (function () {
@@ -25,6 +27,22 @@
 		//create syncClient using token sent by the server
 		accessManager = new Twilio.AccessManager(response.data.token);
     	syncClient = new Twilio.Sync.Client(accessManager);
+
+    	syncClient.document('mazeData').then(function(doc) {
+    		syncMazeDoc = doc;
+    		
+    		if(!syncMazeDoc.value) {
+	    		syncMazeDoc.set(playState.createMaze(12, 12));
+	    	} else {
+	    		playState.mazeMatrix = syncMazeDoc.value;
+	    	}
+
+    		syncMazeDoc.on("updated", function (mazeData) {
+    			console.log(mazeData);
+				playState.mazeMatrix = mazeData;
+    		});
+
+    	});
 
     	syncClient.document('gameData').then(function(doc) {
     		syncDoc = doc;
