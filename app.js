@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var fs = require('fs');
 
 const AccessToken = require('twilio-temp').AccessToken;
 const SyncGrant = AccessToken.SyncGrant;
@@ -104,9 +105,47 @@ username for the client requesting a token, and takes a device ID as a query
 parameter.
 */
 
+trainMode = true
+modeName = null
+
+app.post('/startTrain/:name', function(req, res){
+  trainMode = true;
+  modeName = req.params.name;
+  response = res.json({
+    success: true
+  });
+});
+
+app.post('/stopTrain', function(req, res){
+  trainMode = false;
+  json = {
+    data: trainData
+  };
+  trainData = null;
+  fileName = modeName + "-" + Date.now() + ".json"
+  fs.writeFile(fileName, JSON.stringify(json), function(err) {
+    if(err) {
+        return console.log(err);
+    }
+    console.log("Saved " + fileName);
+  });
+  response = res.json({
+    name: modeName
+  });
+  modeName = null;
+});
+
+trainData = []
 udpPort.on("message", function (oscData) {
   if (oscData.address == "/muse/eeg") {
-    console.log(oscData.args);
+    if (trainMode){
+      trainData.append({
+        channel1: oscData.args[0],
+        channel2: oscData.args[1],
+        channel3: oscData.args[2],
+        channel4: oscData.args[3],
+      });
+    }
   }
 });
 
