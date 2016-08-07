@@ -178,12 +178,12 @@ var playState = {
 
     getPlayerData: function() {
     	return {
-    		x: player.x,
-    		y: player.y,
-    		dirX: player.dirX,
-    		dirY: player.dirY,
-    		dx: player.body.velocity.x,
-    		dy: player.body.velocity.y
+    		x: this.player.x,
+    		y: this.player.y,
+    		dirX: this.player.dirX,
+    		dirY: this.player.dirY,
+    		dx: this.player.body.velocity.x,
+    		dy: this.player.body.velocity.y
     	};
     },
 
