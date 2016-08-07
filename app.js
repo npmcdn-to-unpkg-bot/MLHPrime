@@ -175,7 +175,7 @@ udpPort.on("message", function (oscData) {
       }
     } else {
       if (queue.length >= 200) {
-        predict(JSON.stringify(queue[0]);
+        predict(JSON.stringify(queue[0]));
         queue.shift();
       }
         queue.push([
