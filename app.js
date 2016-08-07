@@ -90,7 +90,7 @@ app.post('/startTrain/:name', function(req, res){
 
 var predict = function (eegData) {
   var options = {
-    args: [eeg, neu]
+    args: [eegData, neuralNetworkString]
   }
   pyshell.run('./ml/predict.py', options, function(err, results){
     if (err){
@@ -102,22 +102,22 @@ var predict = function (eegData) {
   });
 
 }
-app.post('/predict', function(req, res){
-  eegData = req.body.data; // STRING IN THE FORM OF [[float, float, float, float] * 200]> <SERIALIZED ANN RECEIVED FROM TRAIN
-  serializedANN = req.body.serializedANN; // This is what was received from train
-  var options = {
-    args: [JSON.stringify(eegData), JSON.stringify(serializedANN)]
-  }
-  pyshell.run('./ml/predict.py', options, function(err, results){
-    if (err){
-      console.log(err);
-      res.status(500).json({});
-    } else{
-      console.log(results);
-      res.json(results);
-    }
-  });
-})
+// app.post('/predict', function(req, res){
+//   eegData = req.body.data; // STRING IN THE FORM OF [[float, float, float, float] * 200]> <SERIALIZED ANN RECEIVED FROM TRAIN
+//   serializedANN = req.body.serializedANN; // This is what was received from train
+//   var options = {
+//     args: [JSON.stringify(eegData), JSON.stringify(serializedANN)]
+//   }
+//   pyshell.run('./ml/predict.py', options, function(err, results){
+//     if (err){
+//       console.log(err);
+//       res.status(500).json({});
+//     } else{
+//       console.log(results);
+//       res.json(results);
+//     }
+//   });
+// })
 
 /*
     FORMAT: {
@@ -175,7 +175,7 @@ udpPort.on("message", function (oscData) {
       }
     } else {
       if (queue.length >= 200) {
-        predict(queue[0])
+        predict(JSON.stringify(queue[0]));
         queue.shift();
       }
         queue.push([
