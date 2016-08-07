@@ -78,12 +78,28 @@ var modeName = null;
 var trainData = []
 // FIXME: PLS ADD MULTIPLAYER SUPPORT. THANX
 
+var neuralNetworkString = null;
+
 app.post('/startTrain/:name', function(req, res){
   trainMode = true;
   modeName = req.params.name;
   trainRes = res;
 });
 
+var perdict = function (eegData) {
+  var options = {
+    args: [eeg, neu]
+  }
+  pyshell.run('./ml/predict.py', options, function(err, results){
+    if (err){
+      console.log(err);
+      return null;
+    } else{
+      return results;
+    }
+  });
+
+}
 app.post('/predict', function(req, res){
   eegData = req.body.data; // This should be a JSON in the form of [float, float, float, float]
   serializedANN = req.body.serializedANN; // This is what was received from train
@@ -112,6 +128,7 @@ app.post('/trainANN', function(req, res){
       res.status(500).json({});
     } else{
       console.log(serialized);
+      neuralNetworkString = serialized;
       res.json(serialized);
     }
   });
@@ -175,11 +192,11 @@ app.use(function(err, req, res, next) {
   next();
 });
 
-/*
-Generate an Access Token for a sync application user - it generates a random
-username for the client requesting a token, and takes a device ID as a query
-parameter.
-*/
+io.on('connection', function (socket) {
+  socket.on('new_user', function (neuralNetwork) {
+
+  });
+});
 
 module.exports = {
   app: app,
