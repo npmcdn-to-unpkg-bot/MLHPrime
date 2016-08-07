@@ -23,7 +23,7 @@
         //  Although it will work fine with this tutorial, it's almost certainly not the most current version.
         //  Be sure to replace it with an updated version before you start experimenting with adding your own code.
 
-        var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        var game = new Phaser.Game(976, 976, Phaser.AUTO, '', { preload: preload, create: create, update: update });
         var cursors;
         var player;
 
@@ -34,13 +34,15 @@
 
             game.load.image('tileset', 'assets/background.png')
             game.load.image('background', 'assets/background.png');
+            game.load.image('wall', 'assets/wall.png');
         }
 
         function create () {
             game.physics.startSystem(Phaser.Physics.ARCADE);
 
             background = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'background');
-            player = game.add.sprite(32, game.world.centerY, 'player');
+            createMaze(20, 20);
+            player = game.add.sprite(16, 16, 'player');
             player.anchor.setTo(0.5, 0.5);
 
             game.physics.arcade.enable(player);
@@ -50,6 +52,72 @@
             player.animations.add('down', [12, 13, 14, 15], 12, true);
 
             cursors = game.input.keyboard.createCursorKeys();
+        }
+
+        function createMaze(x,y) {
+        	var n=x*y-1;
+        	var horiz =[]; for (var j= 0; j<x+1; j++) horiz[j]= [],
+        	    verti =[]; for (var j= 0; j<x+1; j++) verti[j]= [],
+        	    here = [Math.floor(Math.random()*x), Math.floor(Math.random()*y)],
+        	    path = [here],
+        	    unvisited = [];
+        	for (var j = 0; j<x+2; j++) {
+        		unvisited[j] = [];
+        		for (var k= 0; k<y+1; k++)
+        			unvisited[j].push(j>0 && j<x+1 && k>0 && (j != here[0]+1 || k != here[1]+1));
+        	}
+        	while (0<n) {
+        		var potential = [[here[0]+1, here[1]], [here[0],here[1]+1],
+        		    [here[0]-1, here[1]], [here[0],here[1]-1]];
+        		var neighbors = [];
+        		for (var j = 0; j < 4; j++)
+        			if (unvisited[potential[j][0]+1][potential[j][1]+1])
+        				neighbors.push(potential[j]);
+        		if (neighbors.length) {
+        			n = n-1;
+        			next= neighbors[Math.floor(Math.random()*neighbors.length)];
+        			unvisited[next[0]+1][next[1]+1]= false;
+        			if (next[0] == here[0])
+        				horiz[next[0]][(next[1]+here[1]-1)/2]= true;
+        			else
+        				verti[(next[0]+here[0]-1)/2][next[1]]= true;
+        			path.push(here = next);
+        		} else
+        			here = path.pop();
+        	}
+        	displayMaze({x: x, y: y, horiz: horiz, verti: verti});
+          return;
+        }
+
+        function displayMaze(m) {
+        	walls = game.add.group();
+          walls.enableBody = true;
+
+        	for (var j= 0; j<m.x*3+1; j++) {
+        		if (0 == j%3){
+        			for (var k=0; k<m.y*3+1; k++){
+        				if (0 == k%3){
+        					var innerWall = walls.create(j*16, k*16, 'wall');
+                  innerWall.body.immovable = true;
+                }else{
+        					if (!(j>0 && m.verti[Math.floor(j/3-1)][Math.floor(k/3)])){
+        						var hWall = walls.create(j*16, k*16, 'wall');
+                    hWall.body.immovable = true;
+                  }
+                }
+              }
+        		}else{
+        			for (var k=0; k<m.y*3+1; k++){
+        				if (0 == k%3){
+        					if (!(k>0 && m.horiz[Math.floor((j-1)/3)][Math.floor(k/3-1)])){
+                    var vWall = walls.create(j*16, k*16, 'wall');
+                    vWall.body.immovable = true;
+                  }
+                }
+              }
+            }
+        	}
+        	return;
         }
 
         function update () {
@@ -67,7 +135,7 @@
                     player.dirX = 0;
                 }
             }
-            else if(cursors.down.isDown) 
+            else if(cursors.down.isDown)
             {
                 if(player.y < game.height) player.body.velocity.y = 100;
                 if(player.dirX == 0) player.animations.play('down');
@@ -76,7 +144,7 @@
                     player.dirX = 0;
                 }
             }
-            
+
             if(cursors.right.isDown)
             {
                 if(player.x < game.width) player.body.velocity.x = 100;
@@ -86,7 +154,7 @@
                     player.dirY = 0;
                 }
             }
-            else if(cursors.left.isDown) 
+            else if(cursors.left.isDown)
             {
                 if(player.x > 0) player.body.velocity.x = -100;
                 player.animations.play('left');
