@@ -1,4 +1,18 @@
 import numpy as np
+import json
+
+PARAMS_PATH = "./data/params.json"
+TRAINING_DATA_PATH = "./data/training.json"
+
+RELAXED = "relaxed"
+CONCENTRATED = "concentrated"
+SCARED = "scared"
+
+strToVecOutMap = {
+    RELAXED: [0, 0, 1],
+    CONCENTRATED: [0, 1, 0],
+    SCARED: [1, 0, 0],
+}
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
@@ -157,7 +171,32 @@ class NeuralNetwork:
             grads.append(grad)
         return grads
 
-                
+    """
+    Serializes this network into an array of thetas in the format
+    {
+        thetas: [
+            [[float]]
+        ]
+    }
+    """
+    def serialize(self):
+        hashMap = {}
+        layers = []
+        for layer in self._layers:
+            layers.append(layer._theta.tolist)
+        hashMap["data"] = layers
+        return hashMap
+
+    @staticmethod
+    def fromSerialized(hashMap):
+        thetas = hashMap["thetas"]
+        layers = []
+        for theta in thetas:
+            layer = Layer(len(theta[0]) - 1, len(theta))
+            layer._theta = theta
+            layers.append(layer)
+        ann = NeuralNetwork(layers)
+        return ann
 class Layer:
     """
     Creates a new Layer to be put into a Neural Network.
@@ -194,7 +233,46 @@ class Layer:
         z = np.dot(prevA, self._theta.T)
         a = sigmoid(z)
         return z, a 
-    
+     
+def createTrainAndSaveNetwork():
+    layers = []
+    layers.append(Layer(4, 12))
+    layers.append(Layer(12, 3))
+    ann = NeuralNetwork(layers)
+    with open(TRAINING_DATA_PATH) as trainingData:
+        """
+        FORMAT: {
+            output: [{
+                channel1: Number,
+                channel2: Number,
+                channel3: Number,
+                channel4: Number,
+            }]
+        }
+        """
+        data = json.loads(trainingData)["data"]
+        inp = []
+        out = []
+        for key, entry in data.items():
+            inp.append([entry["channel1"], entry["channel2"], entry["channel3"], entry["channel4"]])
+            out.append(strToVecOutMap(key))
+        X = np.array(inp)
+        y = np.array(out)
+        ann.train(X, y)
+    serialized = ann.serialize()
+    string = json.dumps(serialized)
+    with open(PARAMS_PATH, 'w') as f:
+        f.seek(0)
+        f.write(string)
+        f.truncate()
+
+def predictState(X):
+    with open(PARAMS_PATH) as paramsData:
+        hashMap = json.loads(paramsData)
+        ann = NeuralNetwork.fromSerialized(hashMap)
+        y = ann.predict(np.array([X]))
+        print(y)
+
 def xorTest():
     layers = []
     layers.append(Layer(2, 5))
@@ -207,4 +285,6 @@ def xorTest():
     ann.train(X, y, checkGrad=False)
     print("AFTER Cost: ", ann.calculateCost(X, y))
     print("PREDICT:: ", ann.predict(X))
-xorTest()
+
+if __name__ == "__main__":
+    print("HELLO WORLD!")

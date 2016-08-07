@@ -5,28 +5,22 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var fs = require('fs');
-
-const AccessToken = require('twilio-temp').AccessToken;
-const SyncGrant = AccessToken.SyncGrant;
-
+var pyshell = require('python-shell');
 var config = require('./config');
-const randomUsername = require('./randos');
-
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-
 var osc = require('osc');
-
 var udpPort = new osc.UDPPort({
     localAddress: "127.0.0.1",
     localPort: 5002,
 });
 
-
 udpPort.open();
 
-
+const randomUsername = require('./randos');
+const AccessToken = require('twilio-temp').AccessToken;
+const SyncGrant = AccessToken.SyncGrant;
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -106,6 +100,14 @@ app.post('/stopTrain', function(req, res){
   });
   modeName = null;
 });
+
+app.post('/trainANN', function(req, res){
+  pyshell.run('./data/neural_network.py', function(err) {
+    if (err) throw err;
+    else console.log('Completed ANN Training!');
+  });
+});
+
 
 trainData = []
 udpPort.on("message", function (oscData) {
