@@ -4,20 +4,23 @@ import json
 PARAMS_PATH = "./ml/data/params.json"
 TRAINING_DATA_PATH = "./ml/data/training.json"
 
-
-RELAXED = "relaxed"
-CONCENTRATED = "concentrated"
-SCARED = "scared"
+IDLE = "idle"
+UP = "up"
+DOWN = "down"
+LEFT = "left"
+RIGHT = "right"
 
 SAMPLE_SIZE = 200
 
 strToVecOutMap = {
-    RELAXED: [0, 0, 1],
-    CONCENTRATED: [0, 1, 0],
-    SCARED: [1, 0, 0],
+    IDLE: [0, 0, 0, 0, 1],
+    UP: [0, 0, 0, 1, 0],
+    DOWN: [0, 0, 1, 0, 0],
+    LEFT: [0, 1, 0, 0, 0],
+    RIGHT: [0, 1, 0, 0, 0]
 }
 
-STATES = [RELAXED, CONCENTRATED, SCARED]
+STATES = [IDLE, UP, DOWN, LEFT, RIGHT]
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
@@ -251,7 +254,7 @@ def unrollSamples(samples):
 def createTrainAndSerializeNetwork(data):
     layers = []
     layers.append(Layer(SAMPLE_SIZE * 4, SAMPLE_SIZE * 7))
-    layers.append(Layer(SAMPLE_SIZE * 7, 3))
+    layers.append(Layer(SAMPLE_SIZE * 7, len(STATES)))
     ann = NeuralNetwork(layers)
     """
     FORMAT: {
