@@ -21,7 +21,7 @@ udpPort.open();
 const randomUsername = require('./randos');
 const AccessToken = require('twilio-temp').AccessToken;
 const SyncGrant = AccessToken.SyncGrant;
-const SAMPLE_SIZE = 200;
+const SAMPLE_SIZE = 50;
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -56,8 +56,8 @@ app.get('/token', (request, response) => {
   // Create an access token which we will sign and return to the client,
   // containing the grant we just created
   var token = new AccessToken(
-    config.accountSid, 
-    config.apiKey, 
+    config.accountSid,
+    config.apiKey,
     config.apiSecret
   );
   token.addGrant(syncGrant);
@@ -83,6 +83,7 @@ app.post('/startTrain/:name', function(req, res){
   modeName = req.params.name;
   trainRes = res;
 });
+
 
 app.post('/predict', function(req, res){
   eegData = req.body.data; // STRING IN THE FORM OF [[float, float, float, float] * 200]> <SERIALIZED ANN RECEIVED FROM TRAIN
@@ -141,21 +142,24 @@ var stopTrain = function(){
   trainData = [];
 };
 
+var counter = 0;
 // FIXME: Add support for multiple training at the same time. This will break if more than a single person uses this at a time
 udpPort.on("message", function (oscData) {
   if (oscData.address == "/muse/eeg") {
-    if (trainMode){
+    if (trainMode & counter == 3){
       trainData.push([
         oscData.args[0],
         oscData.args[1],
         oscData.args[2],
         oscData.args[3],
       ]);
+      couneter = 0;
       if (trainData.length == SAMPLE_SIZE){
         stopTrain()
       }
     }
   }
+  counter++;
 });
 
 

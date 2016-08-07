@@ -1,3 +1,5 @@
+import sys
+
 execfile('./ml/neural_network.py')
 if len(sys.argv) < 2:
     print("Usage: python predict.py <STRING IN THE FORM OF '[{String: [[float, float, float, float] * 200]}'] >")

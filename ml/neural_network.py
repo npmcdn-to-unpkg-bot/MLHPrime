@@ -10,7 +10,7 @@ DOWN = "down"
 LEFT = "left"
 RIGHT = "right"
 
-SAMPLE_SIZE = 200
+SAMPLE_SIZE = 50
 
 strToVecOutMap = {
     IDLE: [0, 0, 0, 0, 1],
@@ -33,11 +33,11 @@ def sigmoidDerivative(z):
 class NeuralNetwork:
     """
     Creates a new Neural Network.
-    
+
     Args:
         layers - A list of Layers in the order such that the input layer is first and output layer is last. The
     """
-    def __init__(self, layers, regularization=0.005):
+    def __init__(self, layers, regularization=0.001):
         self._layers = layers
         self._lambda = regularization
 
@@ -56,7 +56,7 @@ class NeuralNetwork:
         for layer in self._layers:
             a = layer.forwardPropogate(a)
         return a
-    
+
     """
     Calculates and quantifies the error in accuracy on predicting the given data set for the Neural Network.
 
@@ -85,7 +85,7 @@ class NeuralNetwork:
             J += (y * np.log(h) + (1 - y) * np.log(1 - h)).sum()
         J = - J / m
         # Regularization
-        reg = 0 
+        reg = 0
         if thetaList is None:
             for layer in self._layers:
                 reg += (layer._theta ** 2).sum()
@@ -95,10 +95,10 @@ class NeuralNetwork:
         reg = self._lambda * reg / (2 * m)
         J += reg
         return J
-    
+
     """
     Uses backpropagation to train this Neural Network on the given data set
-    
+
     Args:
         X - An m * n matrix containing the input training data, where m is the number of cases and
             n is the number of features
@@ -109,7 +109,7 @@ class NeuralNetwork:
         checkGrad - If gradient checking should be turned on
         showCost - If the cost should be shown each iter
     """
-    def train(self, X, y, iters=1000, alpha=0.5, checkGrad=False, showCost=False):
+    def train(self, X, y, iters=200, alpha=0.75, checkGrad=False, showCost=False):
         m = X.shape[0]
         k = len(self._layers) + 1 # +1 for Input Layer
         for i in range(iters):
@@ -134,9 +134,9 @@ class NeuralNetwork:
                 delta = np.reshape(delta, (1, delta.size))
                 nablas[k - 1] += np.dot(delta.T, activations[k - 2])
                 for l in range(k - 2, 0, -1): # Do not include input layer
-                    layer = self._layers[l] 
+                    layer = self._layers[l]
                     delta = np.dot(delta, layer._theta) * sigmoidDerivative(np.r_[1, zVals[l]])
-                    delta = np.dot(delta.T, activations[l - 1]) 
+                    delta = np.dot(delta.T, activations[l - 1])
                     delta = delta[1:, :] # Ignore bias node
                     nablas[l] += delta
             # Descent dat gradients
@@ -241,7 +241,7 @@ class Layer:
         prevA = np.r_[1, prevA]
         z = np.dot(prevA, self._theta.T)
         a = sigmoid(z)
-        return z, a 
+        return z, a
 
 
 def unrollSamples(samples):
@@ -271,18 +271,17 @@ def createTrainAndSerializeNetwork(data):
     inp = []
     out = []
     for key, samples in data.items():
-        assert(len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE))
         vec = unrollSamples(samples)
         inp.append(vec)
         out.append(strToVecOutMap[key])
     X = np.array(inp)
     y = np.array(out)
-    ann.train(X, y)
+    print("BEFORE COST: ", ann.calculateCost(X, y))
+    ann.train(X, y, showCost=True)
+    print("AFTER COST: ", ann.calculateCost(X, y))
     serialized = ann.serialize()
-    print(serialized)
 
 def predictState(serialized, samples):
-    assert(len(samples) == SAMPLE_SIZE, "SAMPLES GIVEN MUST BE A LIST OF LENGTH " + str(SAMPLE_SIZE))
     ann = NeuralNetwork.fromSerialized(hashMap)
     X = unrollSamples(samples)
     y = ann.predict(np.array([X])).tolist()[0]
@@ -294,6 +293,9 @@ def predictState(serialized, samples):
             maxIdx = i
             maxVal = y[i]
     print(STATES[i])
+#
+# def tmpTest(data):
+#     data =
 
 def xorTest():
     layers = []
