@@ -10,6 +10,7 @@ var config = require('./config');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var socket = null;
 var osc = require('osc');
 var udpPort = new osc.UDPPort({
     localAddress: "127.0.0.1",
@@ -79,6 +80,7 @@ var trainData = []
 // FIXME: PLS ADD MULTIPLAYER SUPPORT. THANX
 
 var neuralNetworkString = null;
+var queue = [];
 
 app.post('/startTrain/:name', function(req, res){
   trainMode = true;
@@ -93,9 +95,9 @@ var perdict = function (eegData) {
   pyshell.run('./ml/predict.py', options, function(err, results){
     if (err){
       console.log(err);
-      return null;
+      
     } else{
-      return results;
+      socket.emit('new_command', results);
     }
   });
 
@@ -171,6 +173,17 @@ udpPort.on("message", function (oscData) {
       if (trainData.length == SAMPLE_SIZE){
         stopTrain()
       }
+    } else {
+      if (queue.length >= 200) {
+        predict(queue[0])
+        queue.shift();
+      }
+        queue.push([
+        oscData.args[0],
+        oscData.args[1],
+        oscData.args[2],
+        oscData.args[3],
+        ]);
     }
   }
 });
@@ -204,10 +217,9 @@ app.use(function(err, req, res, next) {
   next();
 });
 
-io.on('connection', function (socket) {
-  socket.on('new_user', function (neuralNetwork) {
-
-  });
+io.on('connection', function (ioSocket) {
+  console.log()
+  socket = ioSocket;
 });
 
 module.exports = {
