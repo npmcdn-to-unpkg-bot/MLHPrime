@@ -61,11 +61,12 @@
     		userId = Date.now();
 
     		syncDoc.mutate(function (remoteValue) {
+    	
 	    		if (!remoteValue.playersMap){
 	    			remoteValue.playersMap = new Object(); 
 	    		} 
 	    		remoteValue.playersMap[userId] = playState.getPlayerData();
-	    		return remoteValue;
+		    		return remoteValue;
     		}).then(function() {
     			console.log(syncDoc.value.players);
     		}).catch(function(err) {

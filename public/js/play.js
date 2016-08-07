@@ -2,6 +2,7 @@ var playState = {
 
     cursors: null,
     player: null,
+    otherPlayers: null,
     walls: null,
     puzzles: null,
     scareTraps: null,
@@ -41,6 +42,8 @@ var playState = {
       this.player.animations.add('left', [4, 5, 6, 7], 12, true);
       this.player.animations.add('up', [8, 9, 10, 11], 12, true);
       this.player.animations.add('down', [12, 13, 14, 15], 12, true);
+
+      this.otherPlayers = {};
 
       this.cursors = game.input.keyboard.createCursorKeys();
       game.camera.follow(this.player);
@@ -138,11 +141,22 @@ var playState = {
     	return;
     },
 
-    renderOtherPlayers: function(otherPlayers) {
-    	for (var key in otherPlayers) {
-		   if (otherPlayers.hasOwnProperty(key)) {
-		      var otherPlayer = otherPlayers[key];
-
+    renderOtherPlayers: function(players) {
+    	for (var key in players) {
+		   if (players.hasOwnProperty(key)) {
+		   		var temp = players[key];
+		   		if(!(key in this.otherPlayers)) {
+		   			var newOtherPlayer = game.add.sprite(temp.x, temp.y, 'player');
+		   			newOtherPlayer.dirX = temp.dirX;
+		   			newOtherPlayer.dirY = temp.dirY;
+		   			this.otherPlayers[key] = newOtherPlayer;
+		   		}
+		   		else {
+		   			this.otherPlayers[key].x = temp.x;
+		   			this.otherPlayers[key].y = temp.y;
+		   			this.otherPlayers[key].dirX = temp.dirX;
+		   			this.otherPlayers[key].dirY = temp.dirY;
+ 		   		}
 		   }
 		}
     },
