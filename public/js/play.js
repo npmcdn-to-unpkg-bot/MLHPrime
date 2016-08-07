@@ -7,6 +7,7 @@ var playState = {
     scare: null,
     time: null,
     scarePic: null,
+    scream: null,
 
 	preload: function() {
       game.load.spritesheet('player', 'assets/player.png', 14, 21);
@@ -26,25 +27,26 @@ var playState = {
             game.world.setBounds(0, 0, 800, 800);
             this.createMaze(12, 12);
 
-            player = game.add.sprite(32, 32, 'player');
-            game.physics.arcade.enable(player);
-            player.anchor.setTo(0.5, 0.5);
-            player.scale.set(1.3, 1.3);
-            player.body.collideWorldBounds=true;
+            this.player = game.add.sprite(32, 32, 'player');
+            game.physics.arcade.enable(this.player);
+            this.player.anchor.setTo(0.5, 0.5);
+            this.player.scale.set(1.3, 1.3);
+            this.player.body.collideWorldBounds=true;
 
-            player.animations.add('right', [0, 1, 2, 3], 12, true);
-            player.animations.add('left', [4, 5, 6, 7], 12, true);
-            player.animations.add('up', [8, 9, 10, 11], 12, true);
-            player.animations.add('down', [12, 13, 14, 15], 12, true);
+            this.player.animations.add('right', [0, 1, 2, 3], 12, true);
+            this.player.animations.add('left', [4, 5, 6, 7], 12, true);
+            this.player.animations.add('up', [8, 9, 10, 11], 12, true);
+            this.player.animations.add('down', [12, 13, 14, 15], 12, true);
 
-            cursors = game.input.keyboard.createCursorKeys();
+            this.cursors = game.input.keyboard.createCursorKeys();
             game.camera.follow(this.player);
 
-            scare = false;
-            scarePic = game.add.sprite(-150, -150, 'scare');
-			      scarePic.scale.set(1.7, 1.7);
-            scarePic.kill();
-            time = 0;
+            this.scare = false;
+            this.scarePic = game.add.sprite(-150, -150, 'scare');
+			this.scarePic.scale.set(1.7, 1.7);
+            this.scarePic.kill();
+      		this.scream = game.add.audio('scream', 5);
+            this.time = 0;
     },
 
     createMaze: function(x,y) {
@@ -169,9 +171,9 @@ var playState = {
         }
 
     	if(this.scare) {
-    		time++;
-    		if(time > 50) {
-    			time = 0;
+    		this.time++;
+    		if(this.time > 50) {
+    			this.time = 0;
     			this.scare = false;
     			this.scarePic.kill();
     		}
@@ -190,11 +192,13 @@ var playState = {
     },
 
     activateScare: function() {
-      var scream = game.add.audio('scream', 5);
-      scream.play();
-      setTimeout(function(){scream.stop();}, 1000);
-    	this.scare = true;
-    	this.scarePic.reset(0, 0);
+      this.scream.play();
+      setTimeout(function(){
+      	if(this.scream)
+      		this.scream.stop();
+      }, 1000);
+		this.scare = true;
+		this.scarePic.reset(0, 0);
     },
 
     activatePuzzle: function() {
