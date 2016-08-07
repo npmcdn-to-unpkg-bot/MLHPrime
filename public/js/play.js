@@ -2,6 +2,7 @@ var playState = {
 
     cursors: null,
     player: null,
+    otherPlayers: null,
     walls: null,
     puzzles: null,
     scareTraps: null,
@@ -10,6 +11,7 @@ var playState = {
     scarePic: null,
     scream: null,
     mazeMatrix: null,
+    delta: null,
 
 	preload: function() {
       game.load.spritesheet('player', 'assets/player.png', 14, 21);
@@ -29,19 +31,19 @@ var playState = {
 
       game.add.tileSprite(0, 0, 800, 800, 'background');
       game.world.setBounds(0, 0, 800, 800);
-      this.createMaze(12, 12);
 
-      this.player = game.add.sprite(32, 32, 'player');
+      this.player = game.add.sprite(47, 47, 'player');
       game.physics.arcade.enable(this.player);
       this.player.anchor.setTo(0.5, 0.5);
       this.player.scale.set(1.3, 1.3);
       this.player.body.collideWorldBounds=true;
-      this.spawnScareTraps();
 
       this.player.animations.add('right', [0, 1, 2, 3], 12, true);
       this.player.animations.add('left', [4, 5, 6, 7], 12, true);
       this.player.animations.add('up', [8, 9, 10, 11], 12, true);
       this.player.animations.add('down', [12, 13, 14, 15], 12, true);
+
+      this.otherPlayers = {};
 
       this.cursors = game.input.keyboard.createCursorKeys();
       game.camera.follow(this.player);
@@ -52,6 +54,7 @@ var playState = {
       this.scarePic.kill();
   		this.scream = game.add.audio('scream', 5);
       this.time = 0;
+      this.delta = 0;
     },
 
     createMaze: function(x,y) {
@@ -103,8 +106,8 @@ var playState = {
           break;
       }
       this.mazeMatrix = {x: x, y: y, horiz: horiz, verti: verti, dX: dX, dY:dY};
-    	this.displayMaze({x: x, y: y, horiz: horiz, verti: verti,  dX: dX, dY:dY});
-      return;
+    	
+      return this.mazeMatrix;
     },
 
     displayMaze: function(m) {
@@ -138,17 +141,45 @@ var playState = {
     	return;
     },
 
+    renderOtherPlayers: function(players) {
+    	for (var key in players) {
+		   if (players.hasOwnProperty(key)) {
+		   		var temp = players[key];
+		   		if(!(key in this.otherPlayers)) {
+		   			var newOtherPlayer = game.add.sprite(temp.x, temp.y, 'player');
+		   			newOtherPlayer.dirX = temp.dirX;
+		   			newOtherPlayer.dirY = temp.dirY;
+		   			this.otherPlayers[key] = newOtherPlayer;
+		   		}
+		   		else {
+		   			this.otherPlayers[key].x = temp.x;
+		   			this.otherPlayers[key].y = temp.y;
+		   			this.otherPlayers[key].dirX = temp.dirX;
+		   			this.otherPlayers[key].dirY = temp.dirY;
+ 		   		}
+		   }
+		}
+    },
+
+    setMaze: function(mazeMatrix) {	
+      	this.displayMaze(this.mazeMatrix);
+    },
+
     update: function() {
+    	this.delta++;
         game.physics.arcade.collide(this.player, this.walls);
 
         var that = this;
-        this.scareTraps.forEach(function(trap, i){
-        	if(Phaser.Rectangle.intersects(that.player.getBounds(), trap.getBounds())) {
-        		that.activateScare();
-        		trap.destroy();
-        		that.scareTraps.splice(i, 1);
-        	}
-        }) ;
+
+        if(this.scareTraps){
+	        this.scareTraps.forEach(function(trap, i){
+	        	if(Phaser.Rectangle.intersects(that.player.getBounds(), trap.getBounds())) {
+	        		that.activateScare();
+	        		trap.destroy();
+	        		that.scareTraps.splice(i, 1);
+	        	}
+	        }) ;
+	    }
 
         this.player.body.velocity.y = 0;
         this.player.body.velocity.x = 0;
@@ -199,6 +230,15 @@ var playState = {
                 if(this.player.dirY == -1) this.player.frame = 10;
                 else if(this.player.dirY == 1) this.player.frame = 13;
             }
+        }
+
+        if(this.delta > 15) {
+        	this.delta = 0;
+        	var evt = document.createEvent("CustomEvent");
+        	evt.initCustomEvent("playerUpdate", true, true, this.getPlayerData());
+        	evt.eventName = "playerUpdate";
+        	var playerEl = document.getElementById("player");
+        	playerEl.dispatchEvent(evt);
         }
 
     	if(this.scare) {

@@ -9,7 +9,13 @@
 	  //synchronisation primitive, for this demo
 	  var syncDoc;
 
+	   var userId;
+
+	  var syncMazeDoc;
+
 	  var index;
+
+	  var playerEl;
 
 (function () {
 	  var getDeviceId = function() {
@@ -20,25 +26,44 @@
 	       });
 	  }
 
+	
 	axios.get('/token', {params: {deviceId: getDeviceId()}}).then(function(response) {
 
 		//create syncClient using token sent by the server
 		accessManager = new Twilio.AccessManager(response.data.token);
     	syncClient = new Twilio.Sync.Client(accessManager);
 
+    	syncClient.document('mazeData').then(function(doc) {
+    		syncMazeDoc = doc;
+
+    		if(!syncMazeDoc.value) {
+	    		syncMazeDoc.set(playState.createMaze(12, 12));
+	    	} else {
+	    		console.log(syncMazeDoc.value);
+	    		playState.mazeMatrix = syncMazeDoc.value;
+	    	}
+    		playState.displayMaze(playState.mazeMatrix);
+      		playState.spawnScareTraps();
+
+    		syncMazeDoc.on("updated", function (mazeData) {
+    			console.log(mazeData);
+				playState.mazeMatrix = mazeData;
+    		});
+
+    	});
+
     	syncClient.document('gameData').then(function(doc) {
     		syncDoc = doc;
+    		userId = Date.now();
+
     		syncDoc.mutate(function (remoteValue) {
-    			
-	    		if (!remoteValue.players){
-	    			remoteValue.players = [playState.getPlayerData()];
-	    		} else {
-	    			remoteValue.players.push(playState.getPlayerData());
-	    		}
-	    		index = remoteValue.players.length - 1;
-	    		return remoteValue;
+	    		if (!remoteValue.playersMap){
+	    			remoteValue.playersMap = new Object(); 
+	    		} 
+	    		remoteValue.playersMap[userId] = playState.getPlayerData();
+		    		return remoteValue;
     		}).then(function() {
-    			console.log(syncDoc.value.players);
+    			console.log(syncDoc.value.playersMap);
     		}).catch(function(err) {
     			console.log(err);
     		});
@@ -46,6 +71,7 @@
 
     		syncDoc.on("updated", function (gameData) {
     			console.log(gameData);
+    			playState.renderOtherPlayers(gameData.playersMap, userId);
     		});
 
 
@@ -55,4 +81,18 @@
 	}).catch(function(err){
 		console.log(err);
 	});
+
+	   playerEl = document.getElementById("player");
+	   playerEl.addEventListener("playerUpdate", function(e){
+	   syncDoc.mutate(function (remoteValue) {
+	   		console.log(e.detail);
+                    remoteValue.playersMap[userId] = e.detail;
+                     return remoteValue;
+                 }).then(function() {
+                    console.log(syncDoc.value.playersMap);
+                 }).catch(function(err) {
+                     console.log(err);
+                 });
+	   });
+
 })();
