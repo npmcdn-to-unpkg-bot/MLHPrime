@@ -103,7 +103,7 @@ app.post('/predict', function(req, res){
 
 /*
     FORMAT: {
-        output: [
+        label: [
             [
                 Number,
                 Number,

@@ -1,4 +1,13 @@
 var trainState = {
+  trained: false,
+  trainingData: {
+    idle: [],
+    up: [],
+    down: [],
+    left: [],
+    right: []
+  },
+
   preload: function(){},
 
   create: function(){
@@ -9,58 +18,106 @@ var trainState = {
     this.text.anchor.setTo(0.5, 0.5);
     this.stage = 0;
     this.total = 0;
+    this.timer = game.time.create(false);
+    this.timer.loop(1000, this.updateCounter, this);
 
     this.keys = game.input.keyboard;
     this.keys.addCallbacks(this,function(e){
-      if(e.keyCode == 32 && this.stage%2 === 0){
-        switch(this.stage){
-          case 0:
-            this.timer.start();
-            $.post('/startTrain/idle', function(data, status){
-              ///
-              setStage(2);
-            });
-            this.text.setText("0");
-            break;
-          case 2: case 4:
-            this.total = 0;
-            this.text.setText(0);
-            break;
-        }
+      if(e.keyCode == 32 && !this.timer.running){
+        requestByStage(Math.floor(this.stage));
       }
     });
-    this.timer = game.time.create(false);
-    this.timer.loop(1000, this.updateCounter, this);
+  },
+  requestByStage: function(stage){
+    switch(stage){
+      case 0:
+        this.timer.start();
+        $.post('/startTrain/idle', function(data, status){
+          this.trainingData.idle.concat(label.reduce(function(prev, cur){
+            return prev.concat(cur);
+          }));
+          setStage(1);
+        });
+        this.text.setText("Listening");
+        break;
+      case 1: case 2:
+        this.timer.start();
+        $.post('/startTrain/up', function(data, status){
+          this.trainingData.up = label.reduce(function(prev, cur){
+            return prev.concat(cur);
+          });
+          setStage(stage+1);
+        });
+        this.text.setText("Listening");
+        break;
+      case 3: case 4:
+        this.timer.start();
+        $.post('/startTrain/down', function(data, status){
+          this.trainingData.down.concat(label.reduce(function(prev, cur){
+            return prev.concat(cur);
+          }));
+          setStage(stage+1);
+        });
+        this.text.setText("Listening");
+        break;
+      case 5: case 6: case 7:
+        this.timer.start();
+        $.post('/startTrain/left', function(data, status){
+          this.trainingData.left.concat(label.reduce(function(prev, cur){
+            return prev.concat(cur);
+          }));
+          setStage(stage+1);
+        });
+        this.text.setText("Listening");
+        break;
+      case 8: case 9: case 10:
+        this.timer.start();
+        $.post('/startTrain/right', function(data, status){
+          this.trainingData.right.concat(label.reduce(function(prev, cur){
+            return prev.concat(cur);
+          }));
+          setStage(stage+1);
+        });
+        this.text.setText("Listening");
+        break;
+    }
   },
   updateCounter: function(){
-    this.total++;
-    this.text.setText(this.total);
+    this.text.setTest(this.text + ".");
   },
   setStage: function(stage){
     this.stage = stage;
-    switch(2)}{
-      this.timer.stop();
-      this.total = 0;
-      this.text.setText("Next, turn your head to the right and back \nagain slowly. Press space to begin.");
+    switch(stage)}{
+      case 1:
+        this.timer.stop();
+        this.text.setText("Next, tilt your head up and back \n down again slowly. Press space to begin.");
+        break;
+      case 6: case 9:
+        this.timer.stop();
+        this.text.setText("and again..");
+        setTimeout(function(){requestByStage(this.stage)}, 1000);
+        break;
+      case 2: case 4: case 7: case 10:
+        this.timer.stop();
+        this.text.setText("and once more.");
+        setTimeout(function(){requestByStage(this.stage)}, 1000);
+        break;
+      case 3:
+        this.timer.stop();
+        this.text.setText("Next, tilt your head down and back \n up again slowly. Press space to begin.");
+        break;
+      case 5:
+        this.timer.stop();
+        this.text.setText("Next, turn you head to the left \nand back again slowly. Press space to begin.");
+        break;
+      case 8:
+        this.timer.stop();
+        this.text.setText("Lastly, turn you head to the left \nand back again slowly. Press space to begin.");
+        break;
+      case 11:
+        this.text.setText("Good job. Now You're ready to play!");
     }
   },
   update: function(){
-    switch(this.stage){
-      case 1:
-        if(this.timer.seconds > 5){
-          this.timer.destroy();
-          this.stage++;
-          this.total = 0;
-          this.text.setText("Next, turn your head to the right \nslowly three times. Press space to begin.");
-        } break;
-      case 3:
-        this.text.setText(this.total);
-        if(this.total > 2){
-          this.total = 0;
-          this.stage++;
-          this.text.setText("Next, turn your head to the left \nslowly three times. Press space to begin.");
-        } break;
-
-    }
   }
 };
