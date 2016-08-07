@@ -101,7 +101,7 @@ var perdict = function (eegData) {
 
 }
 app.post('/predict', function(req, res){
-  eegData = req.body.data; // This should be a JSON in the form of [float, float, float, float]
+  eegData = req.body.data; // STRING IN THE FORM OF [[float, float, float, float] * 200]> <SERIALIZED ANN RECEIVED FROM TRAIN
   serializedANN = req.body.serializedANN; // This is what was received from train
   var options = {
     args: [JSON.stringify(eegData), JSON.stringify(serializedANN)]
@@ -117,6 +117,18 @@ app.post('/predict', function(req, res){
   });
 })
 
+/*
+    FORMAT: {
+        label: [
+            [
+                Number,
+                Number,
+                Number,
+                Number,
+            ]
+        ]
+    }
+*/
 app.post('/trainANN', function(req, res){
   samples = req.body.samples; // This should be a JSON in the form of [float, float, float, float]
   var options = {
@@ -138,7 +150,7 @@ app.post('/trainANN', function(req, res){
 var stopTrain = function(){
   trainMode = false;
   json = {
-    modeName: modeName,
+    label: modeName,
     data: trainData,
   };
   modeName= null;
@@ -150,12 +162,12 @@ var stopTrain = function(){
 udpPort.on("message", function (oscData) {
   if (oscData.address == "/muse/eeg") {
     if (trainMode){
-      trainData.push({
-        channel1: oscData.args[0],
-        channel2: oscData.args[1],
-        channel3: oscData.args[2],
-        channel4: oscData.args[3],
-      });
+      trainData.push([
+        oscData.args[0],
+        oscData.args[1],
+        oscData.args[2],
+        oscData.args[3],
+      ]);
       if (trainData.length == SAMPLE_SIZE){
         stopTrain()
       }
