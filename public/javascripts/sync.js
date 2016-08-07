@@ -9,6 +9,8 @@
 	  //synchronisation primitive, for this demo
 	  var syncDoc;
 
+	   var userId;
+
 	  var syncMazeDoc;
 
 	  var index;
@@ -52,14 +54,13 @@
 
     	syncClient.document('gameData').then(function(doc) {
     		syncDoc = doc;
+    		userId = Date.now();
+
     		syncDoc.mutate(function (remoteValue) {
-    			
-	    		if (!remoteValue.players){
-	    			remoteValue.players = [playState.getPlayerData()];
-	    		} else {
-	    			remoteValue.players.push(playState.getPlayerData());
-	    		}
-	    		index = remoteValue.players.length - 1;
+	    		if (!remoteValue.playersMap){
+	    			remoteValue.playersMap = new Object(); 
+	    		} 
+	    		remoteValue.playersMap[userId] = playState.getPlayerData();
 	    		return remoteValue;
     		}).then(function() {
     			console.log(syncDoc.value.players);

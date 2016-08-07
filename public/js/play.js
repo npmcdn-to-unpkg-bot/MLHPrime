@@ -31,7 +31,7 @@ var playState = {
       game.add.tileSprite(0, 0, 800, 800, 'background');
       game.world.setBounds(0, 0, 800, 800);
 
-      this.player = game.add.sprite(32, 32, 'player');
+      this.player = game.add.sprite(47, 47, 'player');
       game.physics.arcade.enable(this.player);
       this.player.anchor.setTo(0.5, 0.5);
       this.player.scale.set(1.3, 1.3);
@@ -136,6 +136,15 @@ var playState = {
         }
     	}
     	return;
+    },
+
+    renderOtherPlayers: function(otherPlayers) {
+    	for (var key in otherPlayers) {
+		   if (otherPlayers.hasOwnProperty(key)) {
+		      var otherPlayer = otherPlayers[key];
+
+		   }
+		}
     },
 
     setMaze: function(mazeMatrix) {	
