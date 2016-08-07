@@ -24,24 +24,24 @@ var playState = {
             game.world.setBounds(0, 0, 800, 800);
             this.createMaze(12, 12);
 
-            player = game.add.sprite(32, 32, 'player');
-            game.physics.arcade.enable(player);
-            player.anchor.setTo(0.5, 0.5);
-            player.scale.set(1.3, 1.3);
-            player.body.collideWorldBounds=true;
+            this.player = game.add.sprite(32, 32, 'player');
+            game.physics.arcade.enable(this.player);
+            this.player.anchor.setTo(0.5, 0.5);
+            this.player.scale.set(1.3, 1.3);
+            this.player.body.collideWorldBounds=true;
 
-            player.animations.add('right', [0, 1, 2, 3], 12, true);
-            player.animations.add('left', [4, 5, 6, 7], 12, true);
-            player.animations.add('up', [8, 9, 10, 11], 12, true);
-            player.animations.add('down', [12, 13, 14, 15], 12, true);
+            this.player.animations.add('right', [0, 1, 2, 3], 12, true);
+            this.player.animations.add('left', [4, 5, 6, 7], 12, true);
+            this.player.animations.add('up', [8, 9, 10, 11], 12, true);
+            this.player.animations.add('down', [12, 13, 14, 15], 12, true);
 
-            cursors = game.input.keyboard.createCursorKeys();
-            game.camera.follow(player);
+            this.cursors = game.input.keyboard.createCursorKeys();
+            game.camera.follow(this.player);
 
-            scare = false;
-            scarePic = game.add.sprite(0, 0, 'scare');
-			scarePic.scale.set(2, 2);
-            scarePic.kill();
+            this.scare = false;
+            this.scarePic = game.add.sprite(0, 0, 'scare');
+			this.scarePic.scale.set(2, 2);
+            this.scarePic.kill();
             time = 0;
     },
 
@@ -81,18 +81,18 @@ var playState = {
     },
 
     displayMaze: function(m) {
-	  walls = game.add.group();
-      walls.enableBody = true;
+	  this.walls = game.add.group();
+      this.walls.enableBody = true;
 
     	for (var j= 0; j<m.x*2+1; j++) {
     		if (0 == j%2){
     			for (var k=0; k<m.y*2+1; k++){
     				if (0 == k%2){
-    					var innerWall = walls.create(j*32, k*32, 'wall');
+    					var innerWall = this.walls.create(j*32, k*32, 'wall');
               innerWall.body.immovable = true;
             }else{
     					if (!(j>0 && m.verti[Math.floor(j/2-1)][Math.floor(k/2)])){
-    						var hWall = walls.create(j*32, k*32, 'wall');
+    						var hWall = this.walls.create(j*32, k*32, 'wall');
                 hWall.body.immovable = true;
               }
             }
@@ -101,7 +101,7 @@ var playState = {
     			for (var k=0; k<m.y*2+1; k++){
     				if (0 == k%2){
     					if (!(k>0 && m.horiz[Math.floor((j-1)/2)][Math.floor(k/2-1)])){
-                var vWall = walls.create(j*32, k*32, 'wall');
+                var vWall = this.walls.create(j*32, k*32, 'wall');
                 vWall.body.immovable = true;
               }
             }
@@ -112,73 +112,73 @@ var playState = {
     },
 
     update: function() {
-        game.physics.arcade.collide(player, walls);
+        game.physics.arcade.collide(this.player, this.walls);
 
-        player.body.velocity.y = 0;
-        player.body.velocity.x = 0;
+        this.player.body.velocity.y = 0;
+        this.player.body.velocity.x = 0;
 
-        if(cursors.up.isDown)
+        if(this.cursors.up.isDown)
         {
         	this.activateScare();
-            player.body.velocity.y = -150;
-            if(player.dirX == 0) player.animations.play('up');
-            player.dirY = -1;
-            if(!cursors.left.isDown && !cursors.right.isDown) {
-                player.dirX = 0;
+            this.player.body.velocity.y = -150;
+            if(this.player.dirX == 0) this.player.animations.play('up');
+            this.player.dirY = -1;
+            if(!this.cursors.left.isDown && !this.cursors.right.isDown) {
+                this.player.dirX = 0;
             }
         }
-        else if(cursors.down.isDown)
+        else if(this.cursors.down.isDown)
         {
-            player.body.velocity.y = 150;
-            if(player.dirX == 0) player.animations.play('down');
-            player.dirY = 1;
-            if(!cursors.left.isDown && !cursors.right.isDown) {
-                player.dirX = 0;
+            this.player.body.velocity.y = 150;
+            if(this.player.dirX == 0) this.player.animations.play('down');
+            this.player.dirY = 1;
+            if(!this.cursors.left.isDown && !this.cursors.right.isDown) {
+                this.player.dirX = 0;
             }
         }
 
-        if(cursors.right.isDown)
+        if(this.cursors.right.isDown)
         {
-            player.body.velocity.x = 150;
-            player.animations.play('right');
-            player.dirX = 1;
-            if(!cursors.up.isDown && !cursors.down.isDown) {
-                player.dirY = 0;
+            this.player.body.velocity.x = 150;
+            this.player.animations.play('right');
+            this.player.dirX = 1;
+            if(!this.cursors.up.isDown && !this.cursors.down.isDown) {
+                this.player.dirY = 0;
             }
         }
-        else if(cursors.left.isDown)
+        else if(this.cursors.left.isDown)
         {
-            player.body.velocity.x = -150;
-            player.animations.play('left');
-            player.dirX = -1;
-            if(!cursors.up.isDown && !cursors.down.isDown) {
-                player.dirY = 0;
+            this.player.body.velocity.x = -150;
+            this.player.animations.play('left');
+            this.player.dirX = -1;
+            if(!this.cursors.up.isDown && !this.cursors.down.isDown) {
+                this.player.dirY = 0;
             }
         }
-        else if(!cursors.up.isDown && !cursors.down.isDown && !cursors.left.isDown && !cursors.right.isDown)
+        else if(!this.cursors.up.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown && !this.cursors.right.isDown)
         {
-            player.animations.stop();
-            if(player.dirX == 1) player.frame = 2;
-            else if(player.dirX == -1) player.frame = 5;
-            else if(player.dirX == 0) {
-                if(player.dirY == -1) player.frame = 10;
-                else if(player.dirY == 1) player.frame = 13;
+            this.player.animations.stop();
+            if(this.player.dirX == 1) this.player.frame = 2;
+            else if(this.player.dirX == -1) this.player.frame = 5;
+            else if(this.player.dirX == 0) {
+                if(this.player.dirY == -1) this.player.frame = 10;
+                else if(this.player.dirY == 1) this.player.frame = 13;
             }
         }
 
-    	if(scare) {
+    	if(this.scare) {
     		time++;
     		if(time > 50) {
     			time = 0;
-    			scare = false;
-    			scarePic.kill();
+    			this.scare = false;
+    			this.scarePic.kill();
     		}
     	}
     },
 
     activateScare: function() {
-    	scare = true;
-    	scarePic.reset(0, 0);
+    	this.scare = true;
+    	this.scarePic.reset(0, 0);
     },
 
     activatePuzzle: function() {
