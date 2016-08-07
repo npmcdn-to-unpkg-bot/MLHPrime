@@ -21,6 +21,7 @@ udpPort.open();
 const randomUsername = require('./randos');
 const AccessToken = require('twilio-temp').AccessToken;
 const SyncGrant = AccessToken.SyncGrant;
+const SAMPLE_SIZE = 200;
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -70,41 +71,24 @@ app.get('/token', (request, response) => {
 });
 
 
-
-trainMode = false
-modeName = null
+// FIXME: UTKARSH THIS WILL BREAK IF THERE ARE MULTIPLE PLAYERS
+var trainMode = false;
+var trainRes = null;
+var modeName = null;
+var trainData = []
+// FIXME: PLS ADD MULTIPLAYER SUPPORT. THANX
 
 app.post('/startTrain/:name', function(req, res){
   trainMode = true;
   modeName = req.params.name;
-  response = res.json({
-    success: true
-  });
-});
-
-app.post('/stopTrain', function(req, res){
-  trainMode = false;
-  json = {
-    data: trainData
-  };
-  trainData = null;
-  fileName = modeName + "-" + Date.now() + ".json"
-  fs.writeFile("./data/" + fileName, JSON.stringify(json), function(err) {
-    if(err) {
-        return console.log(err);
-    }
-    console.log("Saved " + fileName);
-  });
-  response = res.json({
-    name: modeName
-  });
-  modeName = null;
+  trainRes = res;
 });
 
 app.post('/predict', function(req, res){
   eegData = req.body.data; // This should be a JSON in the form of [float, float, float, float]
+  serializedANN = req.body.serializedANN; // This is what was received from train
   var options = {
-    args: [JSON.stringify(eegData)]
+    args: [JSON.stringify(eegData), JSON.stringify(serializedANN)]
   }
   pyshell.run('./ml/predict.py', options, function(err, results){
     if (err){
@@ -118,20 +102,34 @@ app.post('/predict', function(req, res){
 })
 
 app.post('/trainANN', function(req, res){
-  pyshell.run('./ml/train.py', function(err, results) {
+  samples = req.body.samples; // This should be a JSON in the form of [float, float, float, float]
+  var options = {
+    args: [JSON.stringify(samples)]
+  }
+  pyshell.run('./ml/train.py', options, function(err, serialized) {
     if (err){
       console.log(err);
       res.status(500).json({});
-    }
-    else{
-      console.log(results);
-      res.json(results);
+    } else{
+      console.log(serialized);
+      res.json(serialized);
     }
   });
 });
 
 
-trainData = []
+var stopTrain = function(){
+  trainMode = false;
+  json = {
+    modeName: modeName,
+    data: trainData,
+  };
+  modeName= null;
+  trainRes.json(trainData);
+  trainData = [];
+};
+
+// FIXME: Add support for multiple training at the same time. This will break if more than a single person uses this at a time
 udpPort.on("message", function (oscData) {
   if (oscData.address == "/muse/eeg") {
     if (trainMode){
@@ -141,6 +139,9 @@ udpPort.on("message", function (oscData) {
         channel3: oscData.args[2],
         channel4: oscData.args[3],
       });
+      if (trainData.length == SAMPLE_SIZE){
+        stopTrain()
+      }
     }
   }
 });
