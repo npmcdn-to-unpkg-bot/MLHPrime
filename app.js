@@ -10,6 +10,7 @@ var config = require('./config');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var socket = null;
 var osc = require('osc');
 var udpPort = new osc.UDPPort({
     localAddress: "127.0.0.1",
@@ -78,12 +79,29 @@ var modeName = null;
 var trainData = []
 // FIXME: PLS ADD MULTIPLAYER SUPPORT. THANX
 
+var neuralNetworkString = null;
+var queue = [];
+
 app.post('/startTrain/:name', function(req, res){
   trainMode = true;
   modeName = req.params.name;
   trainRes = res;
 });
 
+var perdict = function (eegData) {
+  var options = {
+    args: [eeg, neu]
+  }
+  pyshell.run('./ml/predict.py', options, function(err, results){
+    if (err){
+      console.log(err);
+      
+    } else{
+      socket.emit('new_command', results);
+    }
+  });
+
+}
 app.post('/predict', function(req, res){
   eegData = req.body.data; // STRING IN THE FORM OF [[float, float, float, float] * 200]> <SERIALIZED ANN RECEIVED FROM TRAIN
   serializedANN = req.body.serializedANN; // This is what was received from train
@@ -124,6 +142,7 @@ app.post('/trainANN', function(req, res){
       res.status(500).json({});
     } else{
       console.log(serialized);
+      neuralNetworkString = serialized;
       res.json(serialized);
     }
   });
@@ -154,6 +173,17 @@ udpPort.on("message", function (oscData) {
       if (trainData.length == SAMPLE_SIZE){
         stopTrain()
       }
+    } else {
+      if (queue.length >= 200) {
+        predict(queue[0])
+        queue.shift();
+      }
+        queue.push([
+        oscData.args[0],
+        oscData.args[1],
+        oscData.args[2],
+        oscData.args[3],
+        ]);
     }
   }
 });
@@ -187,11 +217,10 @@ app.use(function(err, req, res, next) {
   next();
 });
 
-/*
-Generate an Access Token for a sync application user - it generates a random
-username for the client requesting a token, and takes a device ID as a query
-parameter.
-*/
+io.on('connection', function (ioSocket) {
+  console.log()
+  socket = ioSocket;
+});
 
 module.exports = {
   app: app,

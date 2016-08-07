@@ -57,6 +57,8 @@
     		userId = Date.now();
 
     		syncDoc.mutate(function (remoteValue) {
+    			// remoteValue.playersMap = null;
+    			// remoteValue.players = null;
 	    		if (!remoteValue.playersMap){
 	    			remoteValue.playersMap = new Object(); 
 	    		} 
@@ -70,7 +72,6 @@
 
 
     		syncDoc.on("updated", function (gameData) {
-    			console.log(gameData);
     			playState.renderOtherPlayers(gameData.playersMap, userId);
     		});
 
@@ -85,7 +86,6 @@
 	   playerEl = document.getElementById("player");
 	   playerEl.addEventListener("playerUpdate", function(e){
 	   syncDoc.mutate(function (remoteValue) {
-	   		console.log(e.detail);
                     remoteValue.playersMap[userId] = e.detail;
                      return remoteValue;
                  }).then(function() {
